@@ -13,9 +13,11 @@ namespace ServerCode.Controllers
         [HttpGet("sign-up")]
         public bool SignUp(string id, string password)
         {
+            if (id.Length > 8 && password.Length > 20)
+                return false;
             return DBManager.Instance.SignUp(id, password);
         }
-        [HttpGet("login")]
+        [HttpGet("log-in")]
         public string Login(string id, string password)
         {
             string? msg;
