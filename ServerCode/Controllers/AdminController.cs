@@ -39,12 +39,12 @@ namespace ServerCode.Controllers
             return "Remove Failed";
         }
         [HttpGet("item-info")]
-        public List<ItemInfo>? GetItemInfo()
+        public ItemInfos? GetItemInfo()
         {
             if (HttpContext.Session.GetInt32("IsAdmin") != 1)
                 return null;
-
-            return DBManager.Instance.GetItemInfos();
+            ItemInfos items = new(DBManager.Instance.GetItemInfos());
+            return items;
         }
     }
 }

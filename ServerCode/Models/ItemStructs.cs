@@ -15,4 +15,12 @@
             itemMaxStack = maxStack;
         }
     }
+    public class ItemInfos
+    {
+        public List<ItemInfo> items;
+        public ItemInfos(List<ItemInfo> itemInfos)
+        {
+            items = itemInfos;
+        }
+    }
 }

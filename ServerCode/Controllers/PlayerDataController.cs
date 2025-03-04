@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using ServerCode.Core;
+using ServerCode.Models;
 
 
 
@@ -10,12 +11,14 @@ namespace ServerCode.Controllers
     [Route("/api")]
     public class PlayerDataController : Controller
     {
-        [HttpGet("sign-up")]
-        public bool SignUp(string id, string password)
+        [HttpPost("sign-up")]
+        public bool SignUp([FromBody]PlayerInfo info)
         {
-            if (id.Length > 8 && password.Length > 20)
+            Console.WriteLine(info.id);
+            Console.WriteLine(info.password);
+            if (info.id.Length > 8 && info.password.Length > 20)
                 return false;
-            return DBManager.Instance.SignUp(id, password);
+            return DBManager.Instance.SignUp(info.id, info.password);
         }
         [HttpGet("log-in")]
         public string Login(string id, string password)
