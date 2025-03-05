@@ -1,7 +1,4 @@
 ﻿using ServerCode.Core;
-using ServerCode.Data;
-using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql;
 using System.Xml.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,15 +16,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true; // 필수 쿠키로 설정
 });
 
-// DBContext 설정
-builder.Services.AddDbContext<GameDbContext>(options =>
-    options.UseMySql(
-        "Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true",
-        ServerVersion.AutoDetect("Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true")
-    )
-);
-
-DBManager.Instance.ConnectDB("Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true");
+DBManager.Instance.ConnectDB($"Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true");
 
 builder.Services.AddControllers();
 //builder.Services.AddEndpointsApiExplorer();

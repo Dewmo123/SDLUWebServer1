@@ -7,9 +7,8 @@ namespace ServerCode.Controllers
 {
     [ApiController]
     [Route("/api")]
-    public class PlayerDataController : ControllerBase
+    public class PlayerDataController : Controller
     {
-        
         [HttpPost("sign-up")]
         public bool SignUp([FromBody]PlayerInfo info)
         {
