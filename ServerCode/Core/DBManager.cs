@@ -15,6 +15,11 @@ namespace ServerCode.Core
         public const string PLAYER_DATA_TABLE = "player_login_data";
         public const string PLAYER_ID = "player_id";
         public const string PASSWORD = "password";
+        /// <summary>
+        /// 플레이어 아이템 테이블의 이름입니다. 플레이어 아이템 테이블은 ItemId(int), quantity(int)를 속성으로 가집니다
+        /// </summary>
+        public const string PLAYER_ITEM_TABLE = "player_item_data";
+        public const string QUANTITY = "quantity";
         #endregion
 
         #region ItemData
@@ -127,6 +132,49 @@ namespace ServerCode.Core
                 }
                 conn.Close();
                 return infos;
+            }
+        }
+        public bool AddItemToPlayer(string playerId, int itemId, int amount)
+        {
+            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+            {
+                conn.Open();
+                
+                // 현재 아이템 수량 확인
+                MySqlCommand checkCommand = new MySqlCommand(
+                    $"SELECT {QUANTITY} FROM {PLAYER_ITEM_TABLE} WHERE {PLAYER_ID} = '{playerId}' AND {ITEM_ID} = {itemId}", 
+                    conn
+                );
+                var reader = checkCommand.ExecuteReader();
+                
+                if (reader.Read())
+                {
+                    // 기존 아이템이 있는 경우 수량 업데이트
+                    int currentQuantity = reader.GetInt32(0);
+                    reader.Close();
+                    
+                    MySqlCommand updateCommand = new MySqlCommand(
+                        $"UPDATE {PLAYER_ITEM_TABLE} SET {QUANTITY} = {currentQuantity + amount} " +
+                        $"WHERE {PLAYER_ID} = '{playerId}' AND {ITEM_ID} = {itemId}", 
+                        conn
+                    );
+                    var result = updateCommand.ExecuteReader();
+                    conn.Close();
+                    return result.RecordsAffected > 0;
+                }
+                else
+                {
+                    reader.Close();
+                    // 새로운 아이템 추가
+                    MySqlCommand insertCommand = new MySqlCommand(
+                        $"INSERT INTO {PLAYER_ITEM_TABLE} ({PLAYER_ID}, {ITEM_ID}, {QUANTITY}) " +
+                        $"VALUES ('{playerId}', {itemId}, {amount})", 
+                        conn
+                    );
+                    var result = insertCommand.ExecuteReader();
+                    conn.Close();
+                    return result.RecordsAffected > 0;
+                }
             }
         }
         #endregion

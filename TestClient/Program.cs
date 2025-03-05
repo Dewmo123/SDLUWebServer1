@@ -8,6 +8,13 @@ namespace TestClient
         public string? id;
         public string? password;
     }
+
+    public class ItemUpdateRequest
+    {
+        public string PlayerId { get; set; } = null!;
+        public Dictionary<int, int> ItemUpdates { get; set; } = new();
+    }
+
     internal class Program
     {
         static HttpClient client = new HttpClient();
@@ -26,9 +33,10 @@ namespace TestClient
             HttpResponseMessage msg = await client.PostAsync(url, content);
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
-            GetUserInfo();
+            await GetUserInfo();
+            UpdateItems();
         }
-        static async void GetUserInfo()
+        static async Task GetUserInfo()
         {
             string url = "http://172.31.0.250:3303/api/userinfo";
             HttpResponseMessage msg = await client.GetAsync(url);
@@ -43,7 +51,26 @@ namespace TestClient
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage msg = await client.PostAsync(url, content);
             Console.WriteLine(msg.StatusCode);
+        }
 
+        static async void UpdateItems()
+        {
+            string url = "http://172.31.0.250:3303/api/update-items";
+            var request = new ItemUpdateRequest
+            {
+                PlayerId = "asdaaa",
+                ItemUpdates = new Dictionary<int, int>
+                {
+                    { 4, -11 },    // 아이템 ID 1에 100개 추가
+                    { 5, -1 }      // 아이템 ID 2에서 1개 소비
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(request);
+            HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage msg = await client.PostAsync(url, content);
+            string result = await msg.Content.ReadAsStringAsync();
+            Console.WriteLine($"아이템 업데이트 결과: {result}");
         }
     }
 }

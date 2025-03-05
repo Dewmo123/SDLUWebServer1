@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Http;
 using ServerCode.Core;
 using ServerCode.Models;
 
-
-
 namespace ServerCode.Controllers
 {
     [ApiController]
@@ -41,5 +39,39 @@ namespace ServerCode.Controllers
                 return "Please Login";
             return name;
         }
+
+        [HttpPost("update-items")]
+        public IActionResult UpdateItems([FromBody] ItemUpdateRequest request)
+        {
+            string? playerId = HttpContext.Session.GetString("User");
+            if (playerId == null)
+                return Unauthorized(new { message = "로그인이 필요합니다." });
+
+            if (playerId != request.PlayerId)
+                return StatusCode(403, new { message = "다른 플레이어의 아이템을 수정할 수 없습니다." });
+
+            try
+            {
+                foreach (var itemUpdate in request.ItemUpdates)
+                {
+                    if (!DBManager.Instance.AddItemToPlayer(playerId, itemUpdate.Key, itemUpdate.Value))
+                    {
+                        return BadRequest(new { message = $"아이템 {itemUpdate.Key} 업데이트 실패" });
+                    }
+                }
+
+                return Ok(new { message = "아이템이 성공적으로 업데이트되었습니다." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "서버 오류가 발생했습니다.", error = ex.Message });
+            }
+        }
+    }
+
+    public class ItemUpdateRequest
+    {
+        public string PlayerId { get; set; } = null!;
+        public Dictionary<int, int> ItemUpdates { get; set; } = new();
     }
 }
