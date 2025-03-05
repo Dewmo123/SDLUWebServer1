@@ -14,8 +14,6 @@ namespace ServerCode.Controllers
         [HttpPost("sign-up")]
         public bool SignUp([FromBody]PlayerInfo info)
         {
-            Console.WriteLine(info.id);
-            Console.WriteLine(info.password);
             if (info.id.Length > 8 && info.password.Length > 20)
                 return false;
             return DBManager.Instance.SignUp(info.id, info.password);

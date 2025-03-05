@@ -2,7 +2,7 @@
 {
     public class PlayerInfo
     {
-        public string? id;
-        public string? password;
+        public string id { get; set; } = null!;
+        public string password { get; set; } = null!;
     }
 }
