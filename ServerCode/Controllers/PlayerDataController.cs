@@ -18,14 +18,14 @@ namespace ServerCode.Controllers
                 return false;
             return DBManager.Instance.SignUp(info.id, info.password);
         }
-        [HttpGet("log-in")]
-        public string Login(string id, string password)
+        [HttpPost("log-in")]
+        public string Login([FromBody]PlayerInfo info)
         {
             string? msg;
-            if (DBManager.Instance.LogIn(id, password))
+            if (DBManager.Instance.LogIn(info.id, info.password))
             {
-                msg = $"Hello {id}";
-                HttpContext.Session.SetString("User", id);
+                msg = $"Hello {info.id}";
+                HttpContext.Session.SetString("User", info.id);
             }
             else
             {
