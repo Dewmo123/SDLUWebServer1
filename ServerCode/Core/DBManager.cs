@@ -1,181 +1,112 @@
-﻿using MySqlConnector;
-using ServerCode.Controllers;
+﻿using Microsoft.EntityFrameworkCore;
+using ServerCode.Data;
 using ServerCode.Models;
-using System.Reflection.Metadata;
 
 namespace ServerCode.Core
 {
     public class DBManager : Singleton<DBManager>
     {
-        string _dbAddress = null!;
-        #region playerData
-        /// <summary>
-        /// 플레이어 데이터 테이블의 이름입니다. 플레이어 데이터 테이블은 playerid와 password를 속성으로 가집니다(varchar)
-        /// </summary>
-        public const string PLAYER_DATA_TABLE = "player_login_data";
-        public const string PLAYER_ID = "player_id";
-        public const string PASSWORD = "password";
-        /// <summary>
-        /// 플레이어 아이템 테이블의 이름입니다. 플레이어 아이템 테이블은 ItemId(int), quantity(int)를 속성으로 가집니다
-        /// </summary>
-        public const string PLAYER_ITEM_TABLE = "player_item_data";
-        public const string QUANTITY = "quantity";
-        #endregion
+        private GameDbContext _context;
 
-        #region ItemData
-        /// <summary>
-        /// 아이템 데이터 테이블의 이름입니다. 아이템 데이터 테이블은 itemId(int,auto_increment), itemName(varchar), itemType(enum), maxStack(int)을 속성으로 가집니다
-        /// </summary>
-        public const string ITEM_DATA_TABLE = "item_data";
-        public const string ITEM_ID = "item_id";
-        public const string ITEM_NAME = "item_name";
-        public const string ITEM_TYPE = "item_type";
-        public const string ITEM_MAX_STACK = "max_stack";
-
-
-        #endregion
-        public void ConnectDB(string connectionAddress)
+        public void ConnectDB(string connectionString)
         {
-            _dbAddress = connectionAddress;
+            var options = new DbContextOptionsBuilder<GameDbContext>()
+                .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+                .Build();
+            _context = new GameDbContext(options);
         }
 
         #region PlayerControl
         public bool CheckIDDuplication(string playerId)
         {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
-            {
-                conn.Open();
-                MySqlCommand command = new MySqlCommand($"SELECT {PLAYER_ID} FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = '{playerId}'", conn);
-                var table = command.ExecuteReader();
-                bool successRead = table.Read();
-                conn.Close();
-                return successRead;
-            }
+            return _context.PlayerData.Any(p => p.PlayerId == playerId);
         }
+
         public bool SignUp(string playerId, string password)
         {
             if (CheckIDDuplication(playerId))
                 return false;
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+
+            var player = new PlayerData
             {
-                conn.Open();
-                MySqlCommand command = new MySqlCommand($"INSERT INTO {PLAYER_DATA_TABLE} ({PLAYER_ID},{PASSWORD}) VALUES ('{playerId}','{password}')", conn);
-                Console.WriteLine("Sign up new Player");
-                var table = command.ExecuteReader();
-                conn.Close();
-                if (table.RecordsAffected != 1)
-                    return false;
-                return true;
-            }
-        }
-        public bool LogIn(string playerId, string password)
-        {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
-            {
-                conn.Open();
-                MySqlCommand command = new MySqlCommand($"SELECT {PASSWORD} FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = '{playerId}'", conn);
-                Console.WriteLine("Check password");
-                var table = command.ExecuteReader();
-                string? pass = null;
-                while (table.Read())
-                    pass = table["password"].ToString();
-                conn.Close();
-                return pass == password;
-            }
+                PlayerId = playerId,
+                Password = password
+            };
+
+            _context.PlayerData.Add(player);
+            return _context.SaveChanges() > 0;
         }
 
+        public bool LogIn(string playerId, string password)
+        {
+            var player = _context.PlayerData
+                .FirstOrDefault(p => p.PlayerId == playerId);
+            return player?.Password == password;
+        }
         #endregion
 
         #region ItemControl
         public bool AddItemInfo(string itemName, ItemType type, int maxStack)
         {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+            var item = new ItemData
             {
-                conn.Open();
-                MySqlCommand command = new MySqlCommand($"INSERT INTO {ITEM_DATA_TABLE} ({ITEM_NAME},{ITEM_TYPE},{ITEM_MAX_STACK}) VALUES ('{itemName}','{(int)type}','{maxStack}')", conn);
-                var table = command.ExecuteReader();
-                conn.Close();
-                if (table.RecordsAffected != 1)
-                    return false;
-                return true;
-            }
+                ItemName = itemName,
+                ItemType = type,
+                MaxStack = maxStack
+            };
+
+            _context.ItemData.Add(item);
+            return _context.SaveChanges() > 0;
         }
+
         public bool RemoveItemInfo(int itemId)
         {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
-            {
-                conn.Open();
-                MySqlCommand command = new MySqlCommand($"DELETE FROM {ITEM_DATA_TABLE} WHERE {ITEM_ID}={itemId}", conn);
-                var table = command.ExecuteReader();
-                conn.Close();
-                if (table.RecordsAffected != 1)
-                    return false;
-                return true;
-            }
+            var item = _context.ItemData.Find(itemId);
+            if (item == null) return false;
+
+            _context.ItemData.Remove(item);
+            return _context.SaveChanges() > 0;
         }
+
         public List<ItemInfo> GetItemInfos()
         {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
-            {
-                conn.Open();
-                MySqlCommand command = new MySqlCommand($"SELECT * FROM {ITEM_DATA_TABLE}", conn);
-                var table = command.ExecuteReader();
-                List<ItemInfo> infos = new List<ItemInfo>();
-                while (table.Read())
-                {
-                    int id = table.GetInt32(table.GetOrdinal(ITEM_ID));
-                    string name = table.GetString(table.GetOrdinal(ITEM_NAME));
-                    ItemType type = Enum.Parse<ItemType>(table.GetString(table.GetOrdinal(ITEM_TYPE)));
-                    int maxStack = table.GetInt32(table.GetOrdinal(ITEM_MAX_STACK));
-                    Console.WriteLine(name);
-                    infos.Add(new ItemInfo(id, name, type, maxStack));
-                }
-                conn.Close();
-                return infos;
-            }
+            return _context.ItemData
+                .Select(i => new ItemInfo(i.ItemId, i.ItemName, i.ItemType, i.MaxStack))
+                .ToList();
         }
+
         public bool AddItemToPlayer(string playerId, int itemId, int amount)
         {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+            var playerItem = _context.PlayerItemData
+                .FirstOrDefault(pi => pi.PlayerId == playerId && pi.ItemId == itemId);
+
+            if (playerItem != null)
             {
-                conn.Open();
-                
-                // 현재 아이템 수량 확인
-                MySqlCommand checkCommand = new MySqlCommand(
-                    $"SELECT {QUANTITY} FROM {PLAYER_ITEM_TABLE} WHERE {PLAYER_ID} = '{playerId}' AND {ITEM_ID} = {itemId}", 
-                    conn
-                );
-                var reader = checkCommand.ExecuteReader();
-                
-                if (reader.Read())
+                int newQuantity = playerItem.Quantity + amount;
+                if (newQuantity < 0)
+                    return false;
+
+                if (newQuantity == 0)
                 {
-                    // 기존 아이템이 있는 경우 수량 업데이트
-                    int currentQuantity = reader.GetInt32(0);
-                    reader.Close();
-                    
-                    MySqlCommand updateCommand = new MySqlCommand(
-                        $"UPDATE {PLAYER_ITEM_TABLE} SET {QUANTITY} = {currentQuantity + amount} " +
-                        $"WHERE {PLAYER_ID} = '{playerId}' AND {ITEM_ID} = {itemId}", 
-                        conn
-                    );
-                    var result = updateCommand.ExecuteReader();
-                    conn.Close();
-                    return result.RecordsAffected > 0;
+                    _context.PlayerItemData.Remove(playerItem);
                 }
                 else
                 {
-                    reader.Close();
-                    // 새로운 아이템 추가
-                    MySqlCommand insertCommand = new MySqlCommand(
-                        $"INSERT INTO {PLAYER_ITEM_TABLE} ({PLAYER_ID}, {ITEM_ID}, {QUANTITY}) " +
-                        $"VALUES ('{playerId}', {itemId}, {amount})", 
-                        conn
-                    );
-                    var result = insertCommand.ExecuteReader();
-                    conn.Close();
-                    return result.RecordsAffected > 0;
+                    playerItem.Quantity = newQuantity;
                 }
             }
+            else if (amount > 0)
+            {
+                var newPlayerItem = new PlayerItemData
+                {
+                    PlayerId = playerId,
+                    ItemId = itemId,
+                    Quantity = amount
+                };
+                _context.PlayerItemData.Add(newPlayerItem);
+            }
+
+            return _context.SaveChanges() > 0;
         }
         #endregion
     }
