@@ -61,8 +61,8 @@ namespace TestClient
                 PlayerId = "asdaaa",
                 ItemUpdates = new Dictionary<int, int>
                 {
-                    { 4, -11 },    // 아이템 ID 1에 100개 추가
-                    { 5, -1 }      // 아이템 ID 2에서 1개 소비
+                    { 4, -11 },    
+                    { 5, -9 }      
                 }
             };
 

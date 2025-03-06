@@ -45,7 +45,8 @@ namespace ServerCode.Core
             using (MySqlConnection conn = new MySqlConnection(_dbAddress))
             {
                 conn.Open();
-                MySqlCommand command = new MySqlCommand($"SELECT {PLAYER_ID} FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = '{playerId}'", conn);
+                MySqlCommand command = new MySqlCommand($"SELECT {PLAYER_ID} FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = @playerId", conn);
+                command.Parameters.AddWithValue("@playerId", playerId);
                 var table = command.ExecuteReader();
                 bool successRead = table.Read();
                 conn.Close();
@@ -59,11 +60,13 @@ namespace ServerCode.Core
             using (MySqlConnection conn = new MySqlConnection(_dbAddress))
             {
                 conn.Open();
-                MySqlCommand command = new MySqlCommand($"INSERT INTO {PLAYER_DATA_TABLE} ({PLAYER_ID},{PASSWORD}) VALUES ('{playerId}','{password}')", conn);
+                MySqlCommand command = new MySqlCommand($"INSERT INTO {PLAYER_DATA_TABLE} ({PLAYER_ID},{PASSWORD}) VALUES (@playerId,@password)", conn);
+                command.Parameters.AddWithValue("@playerId", playerId);
+                command.Parameters.AddWithValue("@password", password);
                 Console.WriteLine("Sign up new Player");
-                var table = command.ExecuteReader();
+                var table = command.ExecuteNonQuery();
                 conn.Close();
-                if (table.RecordsAffected != 1)
+                if (table != 1)
                     return false;
                 return true;
             }
@@ -73,7 +76,8 @@ namespace ServerCode.Core
             using (MySqlConnection conn = new MySqlConnection(_dbAddress))
             {
                 conn.Open();
-                MySqlCommand command = new MySqlCommand($"SELECT {PASSWORD} FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = '{playerId}'", conn);
+                MySqlCommand command = new MySqlCommand($"SELECT {PASSWORD} FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = @playerId", conn);
+                command.Parameters.AddWithValue("@playerId", playerId);
                 Console.WriteLine("Check password");
                 var table = command.ExecuteReader();
                 string? pass = null;
@@ -92,10 +96,13 @@ namespace ServerCode.Core
             using (MySqlConnection conn = new MySqlConnection(_dbAddress))
             {
                 conn.Open();
-                MySqlCommand command = new MySqlCommand($"INSERT INTO {ITEM_DATA_TABLE} ({ITEM_NAME},{ITEM_TYPE},{ITEM_MAX_STACK}) VALUES ('{itemName}','{(int)type}','{maxStack}')", conn);
-                var table = command.ExecuteReader();
+                MySqlCommand command = new MySqlCommand($"INSERT INTO {ITEM_DATA_TABLE} ({ITEM_NAME},{ITEM_TYPE},{ITEM_MAX_STACK}) VALUES (@itemName,@type,@maxStack)", conn);
+                command.Parameters.AddWithValue("@itemName", itemName);
+                command.Parameters.AddWithValue("@type", (int)type);
+                command.Parameters.AddWithValue("@maxStack", maxStack);
+                var table = command.ExecuteNonQuery();
                 conn.Close();
-                if (table.RecordsAffected != 1)
+                if (table != 1)
                     return false;
                 return true;
             }
@@ -134,48 +141,114 @@ namespace ServerCode.Core
                 return infos;
             }
         }
+        #endregion
+
+        #region SQL Queries
+        private static class Queries
+        {
+            public static string SelectItemQuantity =>
+                $"SELECT {QUANTITY} FROM {PLAYER_ITEM_TABLE} " +
+                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
+
+            public static string DeleteItem =>
+                $"DELETE FROM {PLAYER_ITEM_TABLE} " +
+                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
+
+            public static string UpdateItemQuantity =>
+                $"UPDATE {PLAYER_ITEM_TABLE} " +
+                $"SET {QUANTITY} = @quantity " +
+                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
+
+            public static string InsertItem =>
+                $"INSERT INTO {PLAYER_ITEM_TABLE} ({PLAYER_ID}, {ITEM_ID}, {QUANTITY}) " +
+                $"VALUES (@playerId, @itemId, @quantity)";
+        }
+        #endregion
+
+        #region PlayerItemControl
         public bool AddItemToPlayer(string playerId, int itemId, int amount)
         {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+            using var conn = new MySqlConnection(_dbAddress);
+            try
             {
                 conn.Open();
-                
-                // 현재 아이템 수량 확인
-                MySqlCommand checkCommand = new MySqlCommand(
-                    $"SELECT {QUANTITY} FROM {PLAYER_ITEM_TABLE} WHERE {PLAYER_ID} = '{playerId}' AND {ITEM_ID} = {itemId}", 
-                    conn
-                );
-                var reader = checkCommand.ExecuteReader();
-                
-                if (reader.Read())
+                using var transaction = conn.BeginTransaction();
+                try
                 {
-                    // 기존 아이템이 있는 경우 수량 업데이트
-                    int currentQuantity = reader.GetInt32(0);
-                    reader.Close();
-                    
-                    MySqlCommand updateCommand = new MySqlCommand(
-                        $"UPDATE {PLAYER_ITEM_TABLE} SET {QUANTITY} = {currentQuantity + amount} " +
-                        $"WHERE {PLAYER_ID} = '{playerId}' AND {ITEM_ID} = {itemId}", 
-                        conn
-                    );
-                    var result = updateCommand.ExecuteReader();
-                    conn.Close();
-                    return result.RecordsAffected > 0;
+                    if (TryUpdateExistingItem(conn, transaction, playerId, itemId, amount) ||
+                        TryAddNewItem(conn, transaction, playerId, itemId, amount))
+                    {
+                        transaction.Commit();
+                        return true;
+                    }
+                    return false;
                 }
-                else
+                catch (Exception)
                 {
-                    reader.Close();
-                    // 새로운 아이템 추가
-                    MySqlCommand insertCommand = new MySqlCommand(
-                        $"INSERT INTO {PLAYER_ITEM_TABLE} ({PLAYER_ID}, {ITEM_ID}, {QUANTITY}) " +
-                        $"VALUES ('{playerId}', {itemId}, {amount})", 
-                        conn
-                    );
-                    var result = insertCommand.ExecuteReader();
-                    conn.Close();
-                    return result.RecordsAffected > 0;
+                    transaction.Rollback();
+                    throw;
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in AddItemToPlayer: {ex.Message}");
+                return false;
+            }
+        }
+
+        private bool TryUpdateExistingItem(MySqlConnection conn, MySqlTransaction transaction, 
+            string playerId, int itemId, int amount)
+        {
+            using var cmd = new MySqlCommand(Queries.SelectItemQuantity, conn, transaction);
+            cmd.Parameters.AddWithValue("@playerId", playerId);
+            cmd.Parameters.AddWithValue("@itemId", itemId);
+
+            using var reader = cmd.ExecuteReader();
+            if (!reader.Read()) return false;
+
+            int currentQuantity = reader.GetInt32(0);
+            reader.Close();
+
+            int newQuantity = currentQuantity + amount;
+            if (newQuantity < 0) return false;
+
+            return newQuantity == 0 
+                ? DeleteItem(conn, transaction, playerId, itemId)
+                : UpdateItemQuantity(conn, transaction, playerId, itemId, newQuantity);
+        }
+
+        private bool TryAddNewItem(MySqlConnection conn, MySqlTransaction transaction,
+            string playerId, int itemId, int amount)
+        {
+            if (amount <= 0) return false;
+
+            using var cmd = new MySqlCommand(Queries.InsertItem, conn, transaction);
+            cmd.Parameters.AddWithValue("@playerId", playerId);
+            cmd.Parameters.AddWithValue("@itemId", itemId);
+            cmd.Parameters.AddWithValue("@quantity", amount);
+
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        private bool DeleteItem(MySqlConnection conn, MySqlTransaction transaction,
+            string playerId, int itemId)
+        {
+            using var cmd = new MySqlCommand(Queries.DeleteItem, conn, transaction);
+            cmd.Parameters.AddWithValue("@playerId", playerId);
+            cmd.Parameters.AddWithValue("@itemId", itemId);
+
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        private bool UpdateItemQuantity(MySqlConnection conn, MySqlTransaction transaction,
+            string playerId, int itemId, int quantity)
+        {
+            using var cmd = new MySqlCommand(Queries.UpdateItemQuantity, conn, transaction);
+            cmd.Parameters.AddWithValue("@playerId", playerId);
+            cmd.Parameters.AddWithValue("@itemId", itemId);
+            cmd.Parameters.AddWithValue("@quantity", quantity);
+
+            return cmd.ExecuteNonQuery() > 0;
         }
         #endregion
     }
