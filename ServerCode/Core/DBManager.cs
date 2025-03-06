@@ -31,8 +31,14 @@ namespace ServerCode.Core
         public const string ITEM_NAME = "item_name";
         public const string ITEM_TYPE = "item_type";
         public const string ITEM_MAX_STACK = "max_stack";
+        #endregion
 
-
+        #region AuctionData
+        /// <summary>
+        /// 경매 데이터 테이블의 이름입니다. 경매 데이터 테이블은 playerId(varchar), itemId(int), pricePerUnit(int), quantity(int)를 속성으로 가집니다
+        /// </summary>
+        public const string AUCTION_DATA_TABLE = "auction";
+        public const string PRICE_PER_UNIT = "price_per_unit";
         #endregion
         public void ConnectDB(string connectionAddress)
         {
@@ -143,28 +149,6 @@ namespace ServerCode.Core
         }
         #endregion
 
-        #region SQL Queries
-        private static class Queries
-        {
-            public static string SelectItemQuantity =>
-                $"SELECT {QUANTITY} FROM {PLAYER_ITEM_TABLE} " +
-                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
-
-            public static string DeleteItem =>
-                $"DELETE FROM {PLAYER_ITEM_TABLE} " +
-                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
-
-            public static string UpdateItemQuantity =>
-                $"UPDATE {PLAYER_ITEM_TABLE} " +
-                $"SET {QUANTITY} = @quantity " +
-                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
-
-            public static string InsertItem =>
-                $"INSERT INTO {PLAYER_ITEM_TABLE} ({PLAYER_ID}, {ITEM_ID}, {QUANTITY}) " +
-                $"VALUES (@playerId, @itemId, @quantity)";
-        }
-        #endregion
-
         #region PlayerItemControl
         public bool AddItemToPlayer(string playerId, int itemId, int amount)
         {
@@ -179,8 +163,10 @@ namespace ServerCode.Core
                         TryAddNewItem(conn, transaction, playerId, itemId, amount))
                     {
                         transaction.Commit();
+                        conn.Close();
                         return true;
                     }
+                    conn.Close();
                     return false;
                 }
                 catch (Exception)
@@ -191,12 +177,13 @@ namespace ServerCode.Core
             }
             catch (Exception ex)
             {
+                conn.Close();
                 Console.WriteLine($"Error in AddItemToPlayer: {ex.Message}");
                 return false;
             }
         }
 
-        private bool TryUpdateExistingItem(MySqlConnection conn, MySqlTransaction transaction, 
+        private bool TryUpdateExistingItem(MySqlConnection conn, MySqlTransaction transaction,
             string playerId, int itemId, int amount)
         {
             using var cmd = new MySqlCommand(Queries.SelectItemQuantity, conn, transaction);
@@ -212,7 +199,7 @@ namespace ServerCode.Core
             int newQuantity = currentQuantity + amount;
             if (newQuantity < 0) return false;
 
-            return newQuantity == 0 
+            return newQuantity == 0
                 ? DeleteItem(conn, transaction, playerId, itemId)
                 : UpdateItemQuantity(conn, transaction, playerId, itemId, newQuantity);
         }
@@ -249,6 +236,103 @@ namespace ServerCode.Core
             cmd.Parameters.AddWithValue("@quantity", quantity);
 
             return cmd.ExecuteNonQuery() > 0;
+        }
+
+        #endregion
+
+        #region AuctionControl
+        public bool AddItemToAuction(string playerId, int itemId, int pricePerUnit, int quantity)
+        {
+            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+            {
+                conn.Open();
+                using var transaction = conn.BeginTransaction();
+                try
+                {
+                    //플레이어가 충분한 양을 갖고있는지 판별 & 빼주기
+
+                    MySqlDataReader table = CheckAlreadyExistInAuction(conn, transaction, playerId, itemId);
+                    if (!TryUpdateExistingItem(conn, transaction, playerId, itemId, quantity))
+                        return false;
+                    //옥션에 올리기
+                    bool success = false;
+                    if (table.Read())
+                        success = AddAuctionItemQuantity(conn, transaction, playerId, itemId, quantity);
+                    else
+                        success = AddNewItemToAuction(conn, transaction, playerId, itemId, pricePerUnit, quantity);
+                    transaction.Commit();
+                    conn.Close();
+                    return success;
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    conn.Close();
+                    return false;
+                }
+            }
+        }
+
+
+        private bool AddNewItemToAuction(MySqlConnection conn, MySqlTransaction transaction, string playerId, int itemId, int pricePerUnit, int quantity)
+        {
+            MySqlCommand addNewItem = new MySqlCommand(Queries.AddNewItemToAuction, conn, transaction);
+            addNewItem.Parameters.AddWithValue("@playerId", playerId);
+            addNewItem.Parameters.AddWithValue("@itemId", itemId);
+            addNewItem.Parameters.AddWithValue("@pricePerUnit", pricePerUnit);
+            addNewItem.Parameters.AddWithValue("@quantity", quantity);
+            return addNewItem.ExecuteNonQuery() > 0;
+        }
+
+        private bool AddAuctionItemQuantity(MySqlConnection conn, MySqlTransaction transaction, string playerId, int itemId, int quantity)
+        {
+            MySqlCommand addQuantity = new MySqlCommand(Queries.AddAuctionItemQuantity, conn, transaction);
+            addQuantity.Parameters.AddWithValue("@quantity", quantity);
+            addQuantity.Parameters.AddWithValue("@playerId", playerId);
+            addQuantity.Parameters.AddWithValue("@itemId", itemId);
+            return addQuantity.ExecuteNonQuery() > 0;
+
+        }
+
+        private MySqlDataReader CheckAlreadyExistInAuction(MySqlConnection conn, MySqlTransaction transaction, string playerId, int itemId)
+        {
+            MySqlCommand checkAlreadyExist = new MySqlCommand(Queries.CheckExistInAuction, conn, transaction);
+            checkAlreadyExist.Parameters.AddWithValue("@playerId", playerId);
+            checkAlreadyExist.Parameters.AddWithValue("@itemId", itemId);
+            var table = checkAlreadyExist.ExecuteReader();
+            return table;
+        }
+        #endregion
+
+        #region SQL Queries
+        private static class Queries
+        {
+            public static string SelectItemQuantity =>
+                $"SELECT {QUANTITY} FROM {PLAYER_ITEM_TABLE} " +
+                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
+
+            public static string DeleteItem =>
+                $"DELETE FROM {PLAYER_ITEM_TABLE} " +
+                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
+
+            public static string UpdateItemQuantity =>
+                $"UPDATE {PLAYER_ITEM_TABLE} " +
+                $"SET {QUANTITY} = @quantity " +
+                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
+
+            public static string InsertItem =>
+                $"INSERT INTO {PLAYER_ITEM_TABLE} ({PLAYER_ID}, {ITEM_ID}, {QUANTITY}) " +
+                $"VALUES (@playerId, @itemId, @quantity)";
+            public static string AddNewItemToAuction =>
+                $"INSERT INTO {AUCTION_DATA_TABLE} ({PLAYER_ID},{ITEM_ID},{PRICE_PER_UNIT},{QUANTITY})" +
+                $" VALUES (@playerId,@itemId,@pricePerUnit,@quantity)";
+            public static string AddAuctionItemQuantity =>
+                $"UPDATE {AUCTION_DATA_TABLE} SET {QUANTITY} = {QUANTITY} + @quantity " +
+                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
+
+            public static string CheckExistInAuction =>
+                $"SELECT * FROM {AUCTION_DATA_TABLE}" +
+                $" WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
         }
         #endregion
     }
