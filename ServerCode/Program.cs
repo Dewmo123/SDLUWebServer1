@@ -1,4 +1,5 @@
 ﻿using ServerCode.Core;
+//using ServerCode.Repositories;
 using System.Xml.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +17,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true; // 필수 쿠키로 설정
 });
 
-DBManager.Instance.ConnectDB($"Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true");
+//DBManager.Instance.ConnectDB($"Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true");
 
 builder.Services.AddControllers();
 //builder.Services.AddEndpointsApiExplorer();

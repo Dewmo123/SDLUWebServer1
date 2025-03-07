@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using ServerCode.Core;
 using ServerCode.Models;
+using Repositories;
 
 namespace ServerCode.Controllers
 {
@@ -10,17 +11,17 @@ namespace ServerCode.Controllers
     public class PlayerDataController : Controller
     {
         [HttpPost("sign-up")]
-        public bool SignUp([FromBody]PlayerInfo info)
+        public bool SignUp([FromBody] PlayerInfo info)
         {
             if (info.id.Length > 8 && info.password.Length > 20)
                 return false;
-            return DBManager.Instance.SignUp(info.id, info.password);
+            return DBManager.Instance.SignUp(info);
         }
         [HttpPost("log-in")]
-        public string Login([FromBody]PlayerInfo info)
+        public string Login([FromBody] PlayerInfo info)
         {
             string? msg;
-            if (DBManager.Instance.LogIn(info.id, info.password))
+            if (DBManager.Instance.LogIn(info))
             {
                 msg = $"Hello {info.id}";
                 HttpContext.Session.SetString("User", info.id);
@@ -52,11 +53,11 @@ namespace ServerCode.Controllers
 
             try
             {
-                foreach (var itemUpdate in request.ItemUpdates)
+                foreach (var itemUpdate in request.Updates)
                 {
-                    if (!DBManager.Instance.AddItemToPlayer(playerId, itemUpdate.Key, itemUpdate.Value))
+                    if (!DBManager.Instance.AddItemToPlayer(itemUpdate))
                     {
-                        return BadRequest(new { message = $"아이템 {itemUpdate.Key} 업데이트 실패" });
+                        return BadRequest(new { message = $"아이템 {itemUpdate.itemId} 업데이트 실패" });
                     }
                 }
 
@@ -72,6 +73,6 @@ namespace ServerCode.Controllers
     public class ItemUpdateRequest
     {
         public string PlayerId { get; set; } = null!;
-        public Dictionary<int, int> ItemUpdates { get; set; } = new();
+        public List<PlayerItemInfo> Updates { get; set; } = null!;
     }
 }

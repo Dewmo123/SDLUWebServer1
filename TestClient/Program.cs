@@ -1,19 +1,10 @@
 ﻿using Newtonsoft.Json;
+//using ServerCode.Controllers;
+using ServerCode.Models;
 using System.Text;
 
 namespace TestClient
 {
-    public class PlayerInfo()
-    {
-        public string? id;
-        public string? password;
-    }
-
-    public class ItemUpdateRequest
-    {
-        public string PlayerId { get; set; } = null!;
-        public Dictionary<int, int> ItemUpdates { get; set; } = new();
-    }
 
     internal class Program
     {
@@ -56,21 +47,22 @@ namespace TestClient
         static async void UpdateItems()
         {
             string url = "http://172.31.0.250:3303/api/update-items";
-            var request = new ItemUpdateRequest
-            {
-                PlayerId = "asdaaa",
-                ItemUpdates = new Dictionary<int, int>
-                {
-                    { 4, -11 },    
-                    { 5, -9 }      
-                }
-            };
+            //var request = new ItemUpdateRequest
+            //{
+            //    PlayerId = "asdaaa",
+            //    Updates = new List<PlayerItemInfo>
+            //    {
+            //        new PlayerItemInfo("asdaaa",4,10),
+            //        new PlayerItemInfo("asdaaa",5,10),
+            //    }
+            //};
 
-            string json = JsonConvert.SerializeObject(request);
-            HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
-            HttpResponseMessage msg = await client.PostAsync(url, content);
-            string result = await msg.Content.ReadAsStringAsync();
-            Console.WriteLine($"아이템 업데이트 결과: {result}");
+            //string json = JsonConvert.SerializeObject(request);
+            //Console.WriteLine(json);
+            //HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            //HttpResponseMessage msg = await client.PostAsync(url, content);
+            //string result = await msg.Content.ReadAsStringAsync();
+            //Console.WriteLine($"아이템 업데이트 결과: {result}");
         }
     }
 }

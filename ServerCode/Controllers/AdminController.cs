@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ServerCode.Core;
 using ServerCode.Models;
+using Repositories;
 
 namespace ServerCode.Controllers
 {
@@ -19,14 +20,14 @@ namespace ServerCode.Controllers
             return "인증 실패";
         }
         [HttpGet("add-item")]
-        public string AddItem(string itemName,ItemType type,int maxStack)
+        public string AddItem(ItemInfo itemInfo)
         {
             if (HttpContext.Session.GetInt32("IsAdmin") != 1)
                 return "You are not admin";
 
-            if (DBManager.Instance.AddItemInfo(itemName, type, maxStack))
+            if (DBManager.Instance.AddItemInfo(itemInfo))
                 return "Success AddItem";
-            
+
             return "Add Failed";
         }
         [HttpGet("remove-item")]

@@ -1,7 +1,7 @@
 ﻿namespace ServerCode.Models
 {
     //Table과 동일
-    public struct ItemInfo
+    public class ItemInfo
     {
         public int itemId;
         public string itemName;
