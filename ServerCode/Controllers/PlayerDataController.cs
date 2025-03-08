@@ -25,6 +25,7 @@ namespace ServerCode.Controllers
         [HttpPost("log-in")]
         public async Task<bool> Login([FromBody] PlayerInfo info)
         {
+            Console.WriteLine(info.id);
             if (await _dbManager.LogIn(info))
             {
                 HttpContext.Session.SetString("User", info.id);

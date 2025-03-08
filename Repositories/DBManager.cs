@@ -66,12 +66,17 @@ namespace Repositories
                             Console.WriteLine($"{info.id}:Duplicate");
                             return false;
                         }
-                        bool success = await _unitOfWork.PlayerInfos.AddAsync(playerInfo,conn,transaction);
+                        bool success = await _unitOfWork.PlayerInfos.AddAsync(playerInfo, conn, transaction);
                         await transaction.CommitAsync();
                         Console.WriteLine(success);
                         return success;
                     }
                     catch (MySqlException)
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+                    catch (InvalidOperationException)
                     {
                         await transaction.RollbackAsync();
                         return false;
@@ -85,20 +90,25 @@ namespace Repositories
         }
         public async Task<bool> LogIn(PlayerInfo playerInfo)
         {
-            //await _unitOfWork.BeginTransactionAsync();
-            //_unitOfWork.SetTransaction(_unitOfWork.PlayerInfos);
-            //try
-            //{
-            //    var item = await _unitOfWork.PlayerInfos.GetByIdAsync(playerInfo.id);
-            //    await _unitOfWork.CommitAsync();
-            //    return item != null;
-            //}
-            //catch(Exception ex)
-            //{
-            //    await _unitOfWork.RollbackAsync();
-            //    return false;
-            //}
-            return true;
+
+            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+            {
+                await conn.OpenAsync();
+                using (MySqlTransaction transaction = await conn.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        var info = await _unitOfWork.PlayerInfos.GetByIdAsync(playerInfo.id, conn, transaction);
+                        await transaction.CommitAsync();
+                        return info.password == playerInfo.password;
+                    }
+                    catch (MySqlException)
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+                }
+            }
         }
 
         #endregion

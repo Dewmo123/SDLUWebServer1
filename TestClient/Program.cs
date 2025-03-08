@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 //using ServerCode.Controllers;
 using ServerCode.Models;
+using System.Net.Http.Json;
 using System.Text;
 
 namespace TestClient
@@ -13,22 +14,20 @@ namespace TestClient
         {
             for (int i = 0; i < 5; i++)
             {
-                SignUp(i);
+                LogIn(i);
             }
             //LogIn();
             while (true) { }
         }
-        static async void LogIn()
+        static async void LogIn(int id)
         {
-            string url = "http://172.31.0.250:3303/api/log-in";
-            PlayerInfo pc = new PlayerInfo { id = "asdaaa", password = "qqwweedd" };
+            string url = "http://localhost:3303/api/log-in";
+            PlayerInfo pc = new PlayerInfo { id = $"qwweewq{id}", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage msg = await client.PostAsync(url, content);
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
-            await GetUserInfo();
-            UpdateItems();
         }
         static async Task GetUserInfo()
         {
@@ -44,7 +43,7 @@ namespace TestClient
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage msg = await client.PostAsync(url, content);
-            Console.WriteLine(msg.ReasonPhrase);
+            Console.WriteLine(msg.StatusCode);
         }
 
         static async void UpdateItems()
