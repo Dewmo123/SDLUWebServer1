@@ -1,5 +1,4 @@
 ﻿using MySqlConnector;
-using ServerCode.Core;
 using ServerCode.Models;
 using System.Reflection.Metadata;
 using System.Threading.Tasks;
@@ -7,9 +6,10 @@ using System.Threading.Tasks;
 namespace Repositories
 {
 
-    public class DBManager : Singleton<DBManager>
+    public class DBManager
     {
         string _dbAddress = null!;
+        private UnitOfWork _unitOfWork = null!;
         #region playerData
         /// <summary>
         /// 플레이어 데이터 테이블의 이름입니다. 플레이어 데이터 테이블은 playerid와 password를 속성으로 가집니다(varchar)
@@ -42,20 +42,62 @@ namespace Repositories
         public const string AUCTION_DATA_TABLE = "auction";
         public const string PRICE_PER_UNIT = "price_per_unit";
         #endregion
-        public void ConnectDB(string connectionAddress)
+        public DBManager(string connectionAddress)
         {
             _dbAddress = connectionAddress;
+            _unitOfWork = new UnitOfWork(connectionAddress);
         }
 
         #region PlayerControl
 
 
-        public bool SignUp(PlayerInfo playerInfo)
+        public async Task<bool> SignUp(PlayerInfo playerInfo)
         {
-            return true;
+            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+            {
+                await conn.OpenAsync();
+                using (MySqlTransaction transaction = await conn.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        var info = await _unitOfWork.PlayerInfos.GetByIdAsync(playerInfo.id, conn, transaction);
+                        if (info.id == playerInfo.id)
+                        {
+                            Console.WriteLine($"{info.id}:Duplicate");
+                            return false;
+                        }
+                        bool success = await _unitOfWork.PlayerInfos.AddAsync(playerInfo,conn,transaction);
+                        await transaction.CommitAsync();
+                        Console.WriteLine(success);
+                        return success;
+                    }
+                    catch (MySqlException)
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+                    finally
+                    {
+                        await conn.CloseAsync();
+                    }
+                }
+            }
         }
-        public bool LogIn(PlayerInfo playerInfo)
+        public async Task<bool> LogIn(PlayerInfo playerInfo)
         {
+            //await _unitOfWork.BeginTransactionAsync();
+            //_unitOfWork.SetTransaction(_unitOfWork.PlayerInfos);
+            //try
+            //{
+            //    var item = await _unitOfWork.PlayerInfos.GetByIdAsync(playerInfo.id);
+            //    await _unitOfWork.CommitAsync();
+            //    return item != null;
+            //}
+            //catch(Exception ex)
+            //{
+            //    await _unitOfWork.RollbackAsync();
+            //    return false;
+            //}
             return true;
         }
 

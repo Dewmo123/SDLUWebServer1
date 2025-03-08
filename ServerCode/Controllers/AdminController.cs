@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ServerCode.Core;
 using ServerCode.Models;
 using Repositories;
 
@@ -9,6 +8,11 @@ namespace ServerCode.Controllers
     [Route("/admin")]
     public class AdminController : Controller
     {
+        private readonly DBManager _dbManager;
+        public AdminController(DBManager dbManager)
+        {
+            _dbManager = dbManager;
+        }
         [HttpGet]
         public string Authorize()
         {
@@ -25,7 +29,7 @@ namespace ServerCode.Controllers
             if (HttpContext.Session.GetInt32("IsAdmin") != 1)
                 return "You are not admin";
 
-            if (DBManager.Instance.AddItemInfo(itemInfo))
+            if (_dbManager.AddItemInfo(itemInfo))
                 return "Success AddItem";
 
             return "Add Failed";
@@ -35,7 +39,7 @@ namespace ServerCode.Controllers
         {
             if (HttpContext.Session.GetInt32("IsAdmin") != 1)
                 return "You are not admin";
-            if (DBManager.Instance.RemoveItemInfo(itemId))
+            if (_dbManager.RemoveItemInfo(itemId))
                 return "Success Remove Item";
             return "Remove Failed";
         }
@@ -44,7 +48,7 @@ namespace ServerCode.Controllers
         {
             if (HttpContext.Session.GetInt32("IsAdmin") != 1)
                 return null;
-            ItemInfos items = new(DBManager.Instance.GetItemInfos());
+            ItemInfos items = new(_dbManager.GetItemInfos());
             return items;
         }
     }

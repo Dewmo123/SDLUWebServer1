@@ -1,4 +1,5 @@
-﻿using ServerCode.Core;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Repositories;
 //using ServerCode.Repositories;
 using System.Xml.Linq;
 
@@ -16,7 +17,7 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true; // 보안 강화
     options.Cookie.IsEssential = true; // 필수 쿠키로 설정
 });
-
+builder.Services.AddSingleton(provider => new DBManager($"Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true"));
 //DBManager.Instance.ConnectDB($"Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true");
 
 builder.Services.AddControllers();

@@ -1,11 +1,13 @@
-﻿namespace Repositories
+﻿using MySqlConnector;
+namespace Repositories
 {
     public interface IRepository<T>
     {
-        public Task<T> GetByIdAsync(string id);
-        public Task<List<T>> GetAllItemsAsync();
-        public Task<bool> AddAsync(T entity);
-        public Task<bool> UpdateAsync(T entity);
-        public Task<bool> DeleteAsync(T entity);
+        public Task<T> GetByIdAsync(string id, MySqlConnection connection, MySqlTransaction transaction);
+        public Task<List<T>> GetAllItemsAsync(MySqlConnection connection, MySqlTransaction transaction); 
+        public Task<bool> AddAsync(T entity, MySqlConnection connection, MySqlTransaction transaction);
+        public Task<bool> UpdateAsync(T entity, MySqlConnection connection, MySqlTransaction transaction);
+        public Task<bool> DeleteAsync(T entity, MySqlConnection connection, MySqlTransaction transaction);
+
     }
 }

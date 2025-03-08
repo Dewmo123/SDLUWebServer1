@@ -3,79 +3,48 @@ using ServerCode.Models;
 
 namespace Repositories
 {
-    public class PlayerInfoRepository : IRepository<PlayerInfo>
+    public class PlayerInfoRepository : RepositoryBase<PlayerInfo>
     {
-        private readonly string _dbAddress;
-        public PlayerInfoRepository(string address)
+
+        public override async Task<bool> AddAsync(PlayerInfo playerInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
-            _dbAddress = address;
+            MySqlCommand command = new MySqlCommand($"INSERT INTO {DBManager.PLAYER_DATA_TABLE} ({DBManager.PLAYER_ID},{DBManager.PASSWORD}) VALUES (@playerId,@password)", connection, transaction);
+            command.Parameters.AddWithValue("@playerId", playerInfo.id);
+            command.Parameters.AddWithValue("@password", playerInfo.password);
+            var table = await command.ExecuteNonQueryAsync();
+            Console.WriteLine(table);
+            return table == 1;
         }
-        public async Task<bool> AddAsync(PlayerInfo playerInfo)
-        {
-            if (CheckIDDuplication(playerInfo.id))
-                return false;
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
-            {
-                conn.Open();
-                MySqlCommand command = new MySqlCommand($"INSERT INTO {DBManager.PLAYER_DATA_TABLE} ({DBManager.PLAYER_ID},{DBManager.PASSWORD}) VALUES (@playerId,@password)", conn);
-                command.Parameters.AddWithValue("@playerId", playerInfo.id);
-                command.Parameters.AddWithValue("@password", playerInfo.password);
-                Console.WriteLine("Sign up new Player");
-                var table = await command.ExecuteNonQueryAsync();
-                conn.Close();
-                if (table != 1)
-                    return false;
-                return true;
-            }
-        }
-        public bool CheckIDDuplication(string playerId)
-        {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
-            {
-                conn.Open();
-                MySqlCommand command = new MySqlCommand($"SELECT {DBManager.PLAYER_ID} FROM {DBManager.PLAYER_DATA_TABLE} WHERE {DBManager.PLAYER_ID} = @playerId", conn);
-                command.Parameters.AddWithValue("@playerId", playerId);
-                var table = command.ExecuteReader();
-                bool successRead = table.Read();
-                conn.Close();
-                return successRead;
-            }
-        }
-        public Task<bool> DeleteAsync(PlayerInfo playerInfo)
+        public override Task<bool> DeleteAsync(PlayerInfo playerInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<PlayerInfo>> GetAllItemsAsync()
+        public override Task<List<PlayerInfo>> GetAllItemsAsync(MySqlConnection connection, MySqlTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<PlayerInfo> GetByIdAsync(string id)//정보만 가지고 오고 로그인은 DBManager에서 구현
+        public override async Task<PlayerInfo> GetByIdAsync(string id, MySqlConnection connection, MySqlTransaction transaction)//정보만 가지고 오고 로그인은 DBManager에서 구현
         {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+            MySqlCommand command = new MySqlCommand($"SELECT * FROM {DBManager.PLAYER_DATA_TABLE} WHERE {DBManager.PLAYER_ID} = @playerId", connection, transaction);
+            command.Parameters.AddWithValue("@playerId", id);
+            var table = await command.ExecuteReaderAsync();
+            PlayerInfo info = new PlayerInfo();
+            while (await table.ReadAsync())
             {
-                conn.Open();
-                MySqlCommand command = new MySqlCommand($"SELECT {DBManager.PASSWORD} FROM {DBManager.PLAYER_DATA_TABLE} WHERE {DBManager.PLAYER_ID} = @playerId", conn);
-                command.Parameters.AddWithValue("@playerId", id);
-                Console.WriteLine("Check password");
-                var table = await command.ExecuteReaderAsync();
-                PlayerInfo info = new PlayerInfo();
-                while (table.Read())
-                {
-                    string playerId = table.GetString(table.GetOrdinal(DBManager.PLAYER_ID));
-                    string password = table.GetString(table.GetOrdinal(DBManager.PASSWORD));
-                    info.id = playerId;
-                    info.password = password;
-                }
-                conn.Close();
-                return info;
+                string playerId = table.GetString(table.GetOrdinal(DBManager.PLAYER_ID));
+                string password = table.GetString(table.GetOrdinal(DBManager.PASSWORD));
+                info.id = playerId;
+                info.password = password;
             }
+            return info;
         }
 
-        public Task<bool> UpdateAsync(PlayerInfo entity)
+        public override Task<bool> UpdateAsync(PlayerInfo entity, MySqlConnection connection, MySqlTransaction transaction)
         {
             throw new NotImplementedException();
         }
     }
+
 }

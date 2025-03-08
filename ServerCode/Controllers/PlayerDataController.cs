@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using ServerCode.Core;
 using ServerCode.Models;
 using Repositories;
 
@@ -10,27 +9,28 @@ namespace ServerCode.Controllers
     [Route("/api")]
     public class PlayerDataController : Controller
     {
-        [HttpPost("sign-up")]
-        public bool SignUp([FromBody] PlayerInfo info)
+        private readonly DBManager _dbManager;
+        public PlayerDataController(DBManager manager)
         {
+            _dbManager = manager;
+        }
+        [HttpPost("sign-up")]
+        public async Task<bool> SignUp([FromBody] PlayerInfo info)
+        {
+            Console.WriteLine(info.id);
             if (info.id.Length > 8 && info.password.Length > 20)
                 return false;
-            return DBManager.Instance.SignUp(info);
+            return await _dbManager.SignUp(info);
         }
         [HttpPost("log-in")]
-        public string Login([FromBody] PlayerInfo info)
+        public async Task<bool> Login([FromBody] PlayerInfo info)
         {
-            string? msg;
-            if (DBManager.Instance.LogIn(info))
+            if (await _dbManager.LogIn(info))
             {
-                msg = $"Hello {info.id}";
                 HttpContext.Session.SetString("User", info.id);
+                return true;
             }
-            else
-            {
-                msg = $"LogIn Failed";
-            }
-            return msg;
+            return false;
         }
         [HttpGet("userinfo")]
         public string GetUserInfo()
@@ -55,7 +55,7 @@ namespace ServerCode.Controllers
             {
                 foreach (var itemUpdate in request.Updates)
                 {
-                    if (!DBManager.Instance.AddItemToPlayer(itemUpdate))
+                    if (!_dbManager.AddItemToPlayer(itemUpdate))
                     {
                         return BadRequest(new { message = $"아이템 {itemUpdate.itemId} 업데이트 실패" });
                     }

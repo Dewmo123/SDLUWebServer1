@@ -5,12 +5,7 @@ namespace Repositories
 {
     public class ItemInfoRepository : IRepository<ItemInfo>
     {
-        private readonly string _dbAddress;
-        public ItemInfoRepository(string address)
-        {
-            _dbAddress = address;
-        }
-        public async Task<bool> AddAsync(ItemInfo itemInfo)
+        public async Task<bool> AddAsync(ItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             using (MySqlConnection conn = new MySqlConnection())
             {
@@ -27,27 +22,19 @@ namespace Repositories
             }
         }
 
-        public async Task<bool> DeleteAsync(ItemInfo itemInfo)
+        public async Task<bool> DeleteAsync(ItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
-            {
-                conn.Open();
-                MySqlCommand command = new MySqlCommand($"DELETE FROM {DBManager.ITEM_DATA_TABLE} WHERE {DBManager.ITEM_ID}=@itemId", conn);
+                MySqlCommand command = new MySqlCommand($"DELETE FROM {DBManager.ITEM_DATA_TABLE} WHERE {DBManager.ITEM_ID}=@itemId", connection,transaction);
                 command.Parameters.AddWithValue("@itemId", itemInfo.itemId);
                 var table = await command.ExecuteNonQueryAsync();
-                conn.Close();
                 if (table != 1)
                     return false;
                 return true;
             }
-        }
 
-        public async Task<List<ItemInfo>> GetAllItemsAsync()
+        public async Task<List<ItemInfo>> GetAllItemsAsync(MySqlConnection connection, MySqlTransaction transaction)
         {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
-            {
-                conn.Open();
-                MySqlCommand command = new MySqlCommand($"SELECT * FROM {DBManager.ITEM_DATA_TABLE}", conn);
+                MySqlCommand command = new MySqlCommand($"SELECT * FROM {DBManager.ITEM_DATA_TABLE}", connection);
                 var table = await command.ExecuteReaderAsync();
                 List<ItemInfo> infos = new List<ItemInfo>();
                 while (table.Read())
@@ -59,17 +46,15 @@ namespace Repositories
                     Console.WriteLine(name);
                     infos.Add(new ItemInfo(id, name, type, maxStack));
                 }
-                conn.Close();
                 return infos;
-            }
         }
 
-        public Task<ItemInfo> GetByIdAsync(string id)
+        public Task<ItemInfo> GetByIdAsync(string id, MySqlConnection connection, MySqlTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> UpdateAsync(ItemInfo entity)
+        public Task<bool> UpdateAsync(ItemInfo entity, MySqlConnection connection, MySqlTransaction transaction)
         {
             throw new NotImplementedException();
         }

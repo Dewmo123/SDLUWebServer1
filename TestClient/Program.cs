@@ -11,8 +11,11 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            //SignUp();
-            LogIn();
+            for (int i = 0; i < 5; i++)
+            {
+                SignUp(i);
+            }
+            //LogIn();
             while (true) { }
         }
         static async void LogIn()
@@ -34,14 +37,14 @@ namespace TestClient
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
         }
-        static async void SignUp()
+        static async void SignUp(int id)
         {
-            string url = "http://172.31.0.250:3303/api/sign-up";
-            PlayerInfo pc = new PlayerInfo { id = "asdaaa", password = "qqwweedd" };
+            string url = "http://localhost:3303/api/sign-up";
+            PlayerInfo pc = new PlayerInfo { id = $"qwweewq{id}", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage msg = await client.PostAsync(url, content);
-            Console.WriteLine(msg.StatusCode);
+            Console.WriteLine(msg.ReasonPhrase);
         }
 
         static async void UpdateItems()
