@@ -1,6 +1,6 @@
 ﻿using MySqlConnector;
 using ServerCode.Models;
-using static Repositories.DBManager;
+using static Repositories.DBConfig;
 
 namespace Repositories
 {
@@ -32,9 +32,25 @@ namespace Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<PlayerItemInfo> GetByIdAsync(string id, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<PlayerItemInfo?> GetByIdAsync(PlayerItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
-            throw new NotImplementedException();
+            var cmd = new MySqlCommand(Queries.GetPlayerItemDataInfo, connection, transaction);
+            cmd.Parameters.AddWithValue("@playerId", itemInfo.playerId);
+            cmd.Parameters.AddWithValue("@itemId", itemInfo.itemId);
+
+            var table = await cmd.ExecuteReaderAsync();
+            PlayerItemInfo? info = null;
+            if(await table.ReadAsync())
+            {
+                info = new PlayerItemInfo
+                {
+                    itemId = table.GetInt32(table.GetOrdinal(ITEM_ID)),
+                    playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
+                    quantity = table.GetInt32(table.GetOrdinal(QUANTITY))
+                };
+            }
+            await table.CloseAsync();
+            return info;
         }
 
         public async Task<bool> UpdateAsync(PlayerItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)

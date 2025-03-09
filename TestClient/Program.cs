@@ -12,22 +12,38 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            for (int i = 0; i < 5; i++)
-            {
-                LogIn(i);
-            }
-            //LogIn();
+            LogIn(1);
             while (true) { }
+        }
+        static async void AddItemToPlayer()
+        {
+            string url = "http://localhost:3303/api/update-item";
+            PlayerItemInfo itemInfo = new PlayerItemInfo()
+            {
+                itemId = 4,
+                playerId = "asdaaa",
+                quantity = -1
+            };
+            string json = JsonConvert.SerializeObject(itemInfo);
+            HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage msg = await client.PostAsync(url, content);
+            string result = await msg.Content.ReadAsStringAsync();
+            Console.WriteLine(result);
+
         }
         static async void LogIn(int id)
         {
             string url = "http://localhost:3303/api/log-in";
-            PlayerInfo pc = new PlayerInfo { id = $"qwweewq{id}", password = "qqwweedd" };
+            PlayerInfo pc = new PlayerInfo { id = $"asdaaa", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage msg = await client.PostAsync(url, content);
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
+            for (int i = 0; i < 30; i++)
+            {
+                AddItemToPlayer();
+            }
         }
         static async Task GetUserInfo()
         {
@@ -43,7 +59,8 @@ namespace TestClient
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage msg = await client.PostAsync(url, content);
-            Console.WriteLine(msg.StatusCode);
+            string result = await msg.Content.ReadAsStringAsync();
+            Console.WriteLine(result);
         }
 
         static async void UpdateItems()

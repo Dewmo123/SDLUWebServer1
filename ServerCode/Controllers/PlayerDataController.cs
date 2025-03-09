@@ -43,7 +43,7 @@ namespace ServerCode.Controllers
         }
 
         [HttpPost("update-items")]
-        public IActionResult UpdateItems([FromBody] ItemUpdateRequest request)
+        public async Task<IActionResult> UpdateItems([FromBody] ItemUpdateRequest request)
         {
             string? playerId = HttpContext.Session.GetString("User");
             if (playerId == null)
@@ -55,12 +55,8 @@ namespace ServerCode.Controllers
             try
             {
                 foreach (var itemUpdate in request.Updates)
-                {
-                    if (!_dbManager.AddItemToPlayer(itemUpdate))
-                    {
+                    if (await _dbManager.ChangePlayerItemQuantityAsync(itemUpdate) == false)
                         return BadRequest(new { message = $"아이템 {itemUpdate.itemId} 업데이트 실패" });
-                    }
-                }
 
                 return Ok(new { message = "아이템이 성공적으로 업데이트되었습니다." });
             }
@@ -68,6 +64,14 @@ namespace ServerCode.Controllers
             {
                 return StatusCode(500, new { message = "서버 오류가 발생했습니다.", error = ex.Message });
             }
+        }
+        [HttpPost("update-item")]
+        public async Task<bool> UpdateItem([FromBody]PlayerItemInfo inPlayerItemInfo)
+        {
+            string? playerId = HttpContext.Session.GetString("User");
+            if (playerId == null || playerId != inPlayerItemInfo.playerId)
+                return false;
+            return await _dbManager.ChangePlayerItemQuantityAsync(inPlayerItemInfo);
         }
     }
 

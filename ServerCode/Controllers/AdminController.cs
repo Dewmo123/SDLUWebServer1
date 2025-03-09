@@ -24,15 +24,12 @@ namespace ServerCode.Controllers
             return "인증 실패";
         }
         [HttpGet("add-item")]
-        public string AddItem(ItemInfo itemInfo)
+        public async Task<bool> AddItem(ItemInfo itemInfo)
         {
             if (HttpContext.Session.GetInt32("IsAdmin") != 1)
-                return "You are not admin";
+                return false;
 
-            if (_dbManager.AddItemInfo(itemInfo))
-                return "Success AddItem";
-
-            return "Add Failed";
+            return await _dbManager.AddItemInfo(itemInfo);
         }
         [HttpGet("remove-item")]
         public string RemoveItem(int itemId)

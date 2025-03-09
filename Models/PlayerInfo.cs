@@ -1,18 +1,18 @@
 ﻿namespace ServerCode.Models
 {
-    public class PlayerInfo
+    public record class PlayerInfo
     {
         public string id { get; set; } = null!;
         public string password { get; set; } = null!;
     }
-    public class AuctionItemInfo
+    public record class AuctionItemInfo
     {
         public string playerId { get; set; } = null!;
         public int itemId { get; set; }
         public int pricePerUnit { get; set; }
         public int quantity { get; set; }
     }
-    public class PlayerItemInfo
+    public record class PlayerItemInfo
     {
         public string playerId { get; set; } = null!;
         public int itemId { get; set; }
@@ -28,7 +28,7 @@
             itemId = auction.itemId;
             quantity = auction.quantity;
         }
-        public PlayerItemInfo(string pId,int iId,int q)
+        public PlayerItemInfo(string pId, int iId, int q)
         {
             playerId = pId;
             itemId = iId;

@@ -8,7 +8,7 @@ namespace Repositories
 
         public async Task<bool> AddAsync(PlayerInfo playerInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
-            MySqlCommand command = new MySqlCommand($"INSERT INTO {DBManager.PLAYER_DATA_TABLE} ({DBManager.PLAYER_ID},{DBManager.PASSWORD}) VALUES (@playerId,@password)", connection, transaction);
+            MySqlCommand command = new MySqlCommand($"INSERT INTO {DBConfig.PLAYER_DATA_TABLE} ({DBConfig.PLAYER_ID},{DBConfig.PASSWORD}) VALUES (@playerId,@password)", connection, transaction);
             command.Parameters.AddWithValue("@playerId", playerInfo.id);
             command.Parameters.AddWithValue("@password", playerInfo.password);
             var table = await command.ExecuteNonQueryAsync();
@@ -24,16 +24,16 @@ namespace Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<PlayerInfo> GetByIdAsync(string id, MySqlConnection connection, MySqlTransaction transaction)//정보만 가지고 오고 로그인은 DBManager에서 구현
+        public async Task<PlayerInfo> GetByIdAsync(PlayerInfo playerInfo, MySqlConnection connection, MySqlTransaction transaction)//정보만 가지고 오고 로그인은 DBManager에서 구현
         {
-            MySqlCommand command = new MySqlCommand($"SELECT * FROM {DBManager.PLAYER_DATA_TABLE} WHERE {DBManager.PLAYER_ID} = @playerId", connection, transaction);
-            command.Parameters.AddWithValue("@playerId", id);
+            MySqlCommand command = new MySqlCommand($"SELECT * FROM {DBConfig.PLAYER_DATA_TABLE} WHERE {DBConfig.PLAYER_ID} = @playerId", connection, transaction);
+            command.Parameters.AddWithValue("@playerId", playerInfo.id);
             var table = await command.ExecuteReaderAsync();
             PlayerInfo info = new PlayerInfo();
             while (await table.ReadAsync())
             {
-                string playerId = table.GetString(table.GetOrdinal(DBManager.PLAYER_ID));
-                string password = table.GetString(table.GetOrdinal(DBManager.PASSWORD));
+                string playerId = table.GetString(table.GetOrdinal(DBConfig.PLAYER_ID));
+                string password = table.GetString(table.GetOrdinal(DBConfig.PASSWORD));
                 info.id = playerId;
                 info.password = password;
             }
