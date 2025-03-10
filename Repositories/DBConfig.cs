@@ -15,6 +15,11 @@
         /// </summary>
         public const string PLAYER_ITEM_TABLE = "player_item_data";
         public const string QUANTITY = "quantity";
+        /// <summary>
+        /// 플레이어 골드 테이블의 이름입니다. PlayerId, Gold를 속성으로 가집니다
+        /// </summary>
+        public const string PLAYER_GOLD_TABLE = "player_gold_data";
+        public const string GOLD = "gold";
         #endregion
 
         #region ItemData

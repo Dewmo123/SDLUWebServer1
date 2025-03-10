@@ -17,6 +17,7 @@ namespace Repositories
         private PlayerItemRepostory _playerItemRepo;
         private AuctionItemRepository _auctionInfoRepo;
         private ItemInfoRepository _itemInfoRepo;
+        private PlayerGoldRepository _playerGoldRepo;
         public UnitOfWork(string address)
         {
             _dbAddress = address;
@@ -29,6 +30,7 @@ namespace Repositories
         public PlayerItemRepostory PlayerItems => _playerItemRepo ??= new PlayerItemRepostory();
 
         public AuctionItemRepository AuctionItems => _auctionInfoRepo ??= new AuctionItemRepository();
+        public PlayerGoldRepository PlayerGold => _playerGoldRepo ??= new PlayerGoldRepository();
 
         public void Dispose()
         {

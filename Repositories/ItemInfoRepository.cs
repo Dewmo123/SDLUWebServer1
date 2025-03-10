@@ -49,7 +49,7 @@ namespace Repositories
                 return infos;
         }
 
-        public Task<ItemInfo> GetByIdAsync(ItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public Task<ItemInfo> GetItemByPrimaryKeysAsync(ItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             throw new NotImplementedException();
         }

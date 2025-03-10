@@ -28,7 +28,7 @@ namespace Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<AuctionItemInfo> GetByIdAsync(AuctionItemInfo auctionItem, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<AuctionItemInfo> GetItemByPrimaryKeysAsync(AuctionItemInfo auctionItem, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand getAuctionItem = new MySqlCommand(Queries.GetAuctionItemById, connection, transaction);
             getAuctionItem.Parameters.AddWithValue("@playerId", auctionItem.playerId);
@@ -57,6 +57,25 @@ namespace Repositories
             addQuantity.Parameters.AddWithValue("@playerId", auctionItemInfo.playerId);
             addQuantity.Parameters.AddWithValue("@itemId", auctionItemInfo.itemId);
             return await addQuantity.ExecuteNonQueryAsync() > 0;
+        }
+        public async Task<List<AuctionItemInfo>> GetItemsByName(string itemName,MySqlConnection connection,MySqlTransaction transaction)
+        {
+            MySqlCommand getItems = new MySqlCommand($"SELECT * FROM {AUCTION_DATA_TABLE} WHERE {ITEM_NAME} = @itemName");
+            getItems.Parameters.AddWithValue("@itemName", itemName);
+            var table = await getItems.ExecuteReaderAsync();
+            List<AuctionItemInfo> items = new List<AuctionItemInfo>();
+            while (await table.ReadAsync())
+            {
+                items.Add(new AuctionItemInfo()
+                {
+                    itemId = table.GetInt32(table.GetOrdinal(ITEM_NAME)),
+                    playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
+                    quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
+                    pricePerUnit = table.GetInt32(table.GetOrdinal(PRICE_PER_UNIT))
+                });
+            }
+            await table.CloseAsync();
+            return items;
         }
     }
 }

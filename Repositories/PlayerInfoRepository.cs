@@ -24,7 +24,7 @@ namespace Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<PlayerInfo> GetByIdAsync(PlayerInfo playerInfo, MySqlConnection connection, MySqlTransaction transaction)//정보만 가지고 오고 로그인은 DBManager에서 구현
+        public async Task<PlayerInfo> GetItemByPrimaryKeysAsync(PlayerInfo playerInfo, MySqlConnection connection, MySqlTransaction transaction)//정보만 가지고 오고 로그인은 DBManager에서 구현
         {
             MySqlCommand command = new MySqlCommand($"SELECT * FROM {DBConfig.PLAYER_DATA_TABLE} WHERE {DBConfig.PLAYER_ID} = @playerId", connection, transaction);
             command.Parameters.AddWithValue("@playerId", playerInfo.id);

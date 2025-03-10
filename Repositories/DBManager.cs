@@ -29,7 +29,7 @@ namespace Repositories
                 {
                     try
                     {
-                        var info = await _unitOfWork.PlayerInfos.GetByIdAsync(playerInfo, conn, transaction);
+                        var info = await _unitOfWork.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
                         if (info.id == playerInfo.id)
                         {
                             Console.WriteLine($"{info.id}:Duplicate");
@@ -67,7 +67,7 @@ namespace Repositories
                 {
                     try
                     {
-                        var info = await _unitOfWork.PlayerInfos.GetByIdAsync(playerInfo, conn, transaction);
+                        var info = await _unitOfWork.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
                         await transaction.CommitAsync();
                         return info.password == playerInfo.password;
                     }
@@ -122,7 +122,7 @@ namespace Repositories
             using var transaction = await conn.BeginTransactionAsync();
             try
             {
-                var info = await _unitOfWork.PlayerItems.GetByIdAsync(itemInfo, conn, transaction);
+                var info = await _unitOfWork.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn, transaction);
                 if (info == null && itemInfo.quantity > 0)
                     return await _unitOfWork.PlayerItems.AddAsync(itemInfo, conn, transaction);
 
@@ -164,7 +164,7 @@ namespace Repositories
             using var transaction = await conn.BeginTransactionAsync();
             try
             {
-                var info = await _unitOfWork.AuctionItems.GetByIdAsync(auctionItemInfo, conn, transaction);
+                var info = await _unitOfWork.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn, transaction);
                 if (info == null && auctionItemInfo.quantity > 0)
                     return await _unitOfWork.AuctionItems.AddAsync(auctionItemInfo, conn, transaction);
 
@@ -193,7 +193,27 @@ namespace Repositories
             }
         }
 
+        public async Task<bool> PurchaseItemInAuction(string buyerPlayerId, AuctionItemInfo inAuctionItemInfo)
+        {
+            using MySqlConnection conn = new MySqlConnection();
+            await conn.OpenAsync();
+            using MySqlTransaction transaction = await conn.BeginTransactionAsync();
+            try
+            {
+                PlayerGoldInfo playerInfo = new() { playerId = buyerPlayerId, gold = 0 };
+                playerInfo = await _unitOfWork.PlayerGold.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
+                if (playerInfo.gold < inAuctionItemInfo.TotalPrice)
+                    return false;
+                //돈 빼고 아이템 추가하고 옥션에서 아이템 빼고 리턴
+                return true;
+            }
+            catch
+            {
 
+                return false;
+
+            }
+        }
         private bool AddNewItemToAuction(MySqlConnection conn, MySqlTransaction transaction, AuctionItemInfo auctionItemInfo)
         {
             return true;
@@ -203,15 +223,6 @@ namespace Repositories
         {
 
             return true;
-        }
-
-        private MySqlDataReader CheckAlreadyExistInAuction(MySqlConnection conn, MySqlTransaction transaction, string playerId, int itemId)
-        {
-            MySqlCommand checkAlreadyExist = new MySqlCommand(Queries.GetAuctionItemById, conn, transaction);
-            checkAlreadyExist.Parameters.AddWithValue("@playerId", playerId);
-            checkAlreadyExist.Parameters.AddWithValue("@itemId", itemId);
-            var table = checkAlreadyExist.ExecuteReader();
-            return table;
         }
         #endregion
 

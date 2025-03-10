@@ -32,7 +32,7 @@ namespace Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<PlayerItemInfo?> GetByIdAsync(PlayerItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<PlayerItemInfo?> GetItemByPrimaryKeysAsync(PlayerItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             var cmd = new MySqlCommand(Queries.GetPlayerItemDataInfo, connection, transaction);
             cmd.Parameters.AddWithValue("@playerId", itemInfo.playerId);

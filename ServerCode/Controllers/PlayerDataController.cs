@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using ServerCode.Models;
 using Repositories;
 
 namespace ServerCode.Controllers
 {
-    [ApiController]
+    [ApiController] //localhost:3303/api/userinfo?a=123&b=123123
     [Route("/api")]
     public class PlayerDataController : Controller
     {
