@@ -64,7 +64,7 @@
                 $" VALUES (@playerId,@itemId,@pricePerUnit,@quantity)";
             public static string UpdateAuctionItemQuantity =>
                 $"UPDATE {AUCTION_DATA_TABLE} SET {QUANTITY} = {QUANTITY} + @quantity " +
-                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
+                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId AND {PRICE_PER_UNIT} = @pricePerUnit";
             public static string GetAuctionItemById =>
                 $"SELECT * FROM {AUCTION_DATA_TABLE}" +
                 $" WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId AND {PRICE_PER_UNIT} = @pricePerUnit";

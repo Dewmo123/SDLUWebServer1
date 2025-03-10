@@ -36,6 +36,7 @@ namespace Repositories
                             return false;
                         }
                         bool success = await _unitOfWork.PlayerInfos.AddAsync(playerInfo, conn, transaction);
+                        success &= await _unitOfWork.PlayerGold.AddAsync(new PlayerGoldInfo() { playerId = playerInfo.id, gold = 0 }, conn, transaction);
                         await transaction.CommitAsync();
                         Console.WriteLine(success);
                         return success;
@@ -122,21 +123,7 @@ namespace Repositories
             using var transaction = await conn.BeginTransactionAsync();
             try
             {
-                var info = await _unitOfWork.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn, transaction);
-                if (info == null && itemInfo.quantity > 0)
-                    return await _unitOfWork.PlayerItems.AddAsync(itemInfo, conn, transaction);
-
-                int quantity = info.quantity + itemInfo.quantity;
-                if (quantity < 0)
-                    return false;
-
-                PlayerItemInfo newItemInfo = new()
-                {
-                    itemId = info.itemId,
-                    playerId = info.playerId,
-                    quantity = quantity
-                };
-                return await _unitOfWork.PlayerItems.UpdateAsync(newItemInfo, conn, transaction);
+                return await CheckConditionAndChangePlayerItem(itemInfo, conn, transaction);
             }
             catch (Exception)
             {
@@ -149,6 +136,26 @@ namespace Repositories
                     await transaction.CommitAsync();
             }
         }
+
+        private async Task<bool> CheckConditionAndChangePlayerItem(PlayerItemInfo itemInfo, MySqlConnection conn, MySqlTransaction transaction)
+        {
+            var info = await _unitOfWork.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn, transaction);
+            if (info == null && itemInfo.quantity > 0)
+                return await _unitOfWork.PlayerItems.AddAsync(itemInfo, conn, transaction);
+
+            int quantity = info.quantity + itemInfo.quantity;
+            if (quantity < 0)
+                return false;
+
+            PlayerItemInfo newItemInfo = new()
+            {
+                itemId = info.itemId,
+                playerId = info.playerId,
+                quantity = quantity
+            };
+            return await _unitOfWork.PlayerItems.UpdateAsync(newItemInfo, conn, transaction);
+        }
+
         private bool DeleteItem(MySqlConnection conn, MySqlTransaction transaction,
             PlayerItemInfo itemInfo)
         {
@@ -164,54 +171,98 @@ namespace Repositories
             using var transaction = await conn.BeginTransactionAsync();
             try
             {
-                var info = await _unitOfWork.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn, transaction);
-                if (info == null && auctionItemInfo.quantity > 0)
-                    return await _unitOfWork.AuctionItems.AddAsync(auctionItemInfo, conn, transaction);
+                var playerItemInfo = new PlayerItemInfo() { playerId = auctionItemInfo.playerId, itemId = auctionItemInfo.itemId, quantity = 0 };
 
-                int quantity = info.quantity + auctionItemInfo.quantity;
+                playerItemInfo = await _unitOfWork.PlayerItems.GetItemByPrimaryKeysAsync(playerItemInfo, conn, transaction);
+                var remainItemInfo = await _unitOfWork.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn, transaction);
+
+                int remainQuantity = playerItemInfo.quantity - auctionItemInfo.quantity;
+                if (remainQuantity < 0)
+                    return false;
+                bool success = await _unitOfWork.PlayerItems.UpdateAsync(new PlayerItemInfo() { playerId = auctionItemInfo.playerId, itemId = auctionItemInfo.itemId, quantity = remainQuantity }, conn, transaction);
+                Console.WriteLine("Update" + success);
+
+                if (remainItemInfo == null && auctionItemInfo.quantity > 0)
+                {
+                    success &= await _unitOfWork.AuctionItems.AddAsync(auctionItemInfo, conn, transaction);
+                    if (success) await transaction.CommitAsync();
+                    else await transaction.RollbackAsync();
+                    return success;
+                }
+
+                int quantity = remainItemInfo.quantity + auctionItemInfo.quantity;
                 if (quantity < 0)
                     return false;
-
                 AuctionItemInfo newItemInfo = new()
                 {
-                    itemId = info.itemId,
-                    playerId = info.playerId,
+                    itemId = remainItemInfo.itemId,
+                    playerId = remainItemInfo.playerId,
                     quantity = quantity,
-                    pricePerUnit = auctionItemInfo.pricePerUnit
+                    pricePerUnit = remainItemInfo.pricePerUnit
                 };
-                return await _unitOfWork.AuctionItems.UpdateAsync(newItemInfo, conn, transaction);
+                success &= await _unitOfWork.AuctionItems.UpdateAsync(newItemInfo, conn, transaction);
+                Console.WriteLine("Update" + success);
+                if (success) await transaction.CommitAsync();
+                else await transaction.RollbackAsync();
+                return success;
             }
             catch (Exception)
             {
                 transaction.Rollback();
                 throw;
             }
-            finally
-            {
-                if (transaction != null)
-                    await transaction.CommitAsync();
-            }
         }
 
-        public async Task<bool> PurchaseItemInAuction(string buyerPlayerId, AuctionItemInfo inAuctionItemInfo)
+        public async Task<bool> PurchaseItemInAuction(BuyerInfo buyerInfo)
         {
-            using MySqlConnection conn = new MySqlConnection();
-            await conn.OpenAsync();
-            using MySqlTransaction transaction = await conn.BeginTransactionAsync();
-            try
+            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
             {
-                PlayerGoldInfo playerInfo = new() { playerId = buyerPlayerId, gold = 0 };
-                playerInfo = await _unitOfWork.PlayerGold.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
-                if (playerInfo.gold < inAuctionItemInfo.TotalPrice)
-                    return false;
-                //돈 빼고 아이템 추가하고 옥션에서 아이템 빼고 리턴
-                return true;
-            }
-            catch
-            {
+                await conn.OpenAsync();
+                using (MySqlTransaction transaction = await conn.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        PlayerGoldInfo playerInfo = new() { playerId = buyerInfo.buyerId, gold = 0 };
+                        playerInfo = await _unitOfWork.PlayerGold.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
 
-                return false;
+                        AuctionItemInfo auctionItem = buyerInfo.itemInfo;
+                        auctionItem = await _unitOfWork.AuctionItems.GetItemByPrimaryKeysAsync(auctionItem, conn, transaction);
 
+                        if (playerInfo == null || auctionItem == null)
+                        {
+                            Console.WriteLine("asdass");
+                            return false;
+                        }
+
+                        if (playerInfo.gold < buyerInfo.NeededMoney || auctionItem.quantity < buyerInfo.buyCount)
+                        {
+                            Console.WriteLine("asd");
+                            return false;
+                        }
+
+                        //돈 빼고 아이템 추가하고 옥션에서 아이템 빼고 리턴
+                        bool success = true;
+                        playerInfo.gold -= buyerInfo.NeededMoney;
+                        auctionItem.quantity -= buyerInfo.buyCount;
+                        success &= await _unitOfWork.PlayerGold.UpdateAsync(playerInfo, conn, transaction);
+                        Console.WriteLine(success);
+                        success &= await _unitOfWork.AuctionItems.UpdateAsync(auctionItem, conn, transaction);
+                        Console.WriteLine(success);
+                        PlayerItemInfo itemInfo = new() { itemId = auctionItem.itemId, playerId = playerInfo.playerId, quantity = buyerInfo.buyCount };
+                        success &= await CheckConditionAndChangePlayerItem(itemInfo, conn, transaction);
+                        Console.WriteLine(success);
+                        if (success)
+                            await transaction.CommitAsync();
+                        else
+                            await transaction.RollbackAsync();
+                        return success;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                        return false;
+                    }
+                }
             }
         }
         private bool AddNewItemToAuction(MySqlConnection conn, MySqlTransaction transaction, AuctionItemInfo auctionItemInfo)

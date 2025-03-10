@@ -12,7 +12,7 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            LogIn(1);
+            LogIn(1,PurchaseItemFromAuction);
             while (true) { }
         }
         static async void AddItemToPlayer()
@@ -20,9 +20,9 @@ namespace TestClient
             string url = "http://localhost:3303/api/update-item";
             PlayerItemInfo itemInfo = new PlayerItemInfo()
             {
-                itemId = 4,
-                playerId = "asdaaa",
-                quantity = -1
+                itemId = 1,
+                playerId = "qwweewq1",
+                quantity = 100
             };
             string json = JsonConvert.SerializeObject(itemInfo);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -31,19 +31,53 @@ namespace TestClient
             Console.WriteLine(result);
 
         }
-        static async void LogIn(int id)
+        static async void AddItemToAuction()
+        {
+            string url = "http://localhost:3303/api/post-to-auction";
+            var itemInfo = new AuctionItemInfo()
+            {
+                itemId = 1,
+                playerId = "qwweewq1",
+                pricePerUnit = 5,
+                quantity = 20
+            };
+            string json = JsonConvert.SerializeObject(itemInfo);
+            HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage msg = await client.PostAsync(url, content);
+            string result = await msg.Content.ReadAsStringAsync();
+            Console.WriteLine(result);
+        }
+        static async void PurchaseItemFromAuction()
+        {
+            string url = "http://localhost:3303/api/purchase-item";
+            var itemInfo = new BuyerInfo()
+            {
+                buyCount = 5,
+                buyerId = "qwweewq2",
+                itemInfo = new AuctionItemInfo()
+                {
+                    itemId = 1,
+                    playerId = "qwweewq1",
+                    pricePerUnit = 5,
+                    quantity = 10
+                }
+            };
+            string json = JsonConvert.SerializeObject(itemInfo);
+            HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage msg = await client.PostAsync(url, content);
+            string result = await msg.Content.ReadAsStringAsync();
+            Console.WriteLine(result);
+        }
+        static async void LogIn(int id,Action callback)
         {
             string url = "http://localhost:3303/api/log-in";
-            PlayerInfo pc = new PlayerInfo { id = $"asdaaa", password = "qqwweedd" };
+            PlayerInfo pc = new PlayerInfo { id = $"qwweewq2", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage msg = await client.PostAsync(url, content);
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
-            for (int i = 0; i < 30; i++)
-            {
-                AddItemToPlayer();
-            }
+            callback();
         }
         static async Task GetUserInfo()
         {

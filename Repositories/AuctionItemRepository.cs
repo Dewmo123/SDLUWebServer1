@@ -52,10 +52,13 @@ namespace Repositories
 
         public async Task<bool> UpdateAsync(AuctionItemInfo auctionItemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
-            MySqlCommand addQuantity = new MySqlCommand(Queries.UpdateAuctionItemQuantity, connection, transaction);
+            MySqlCommand addQuantity = new MySqlCommand(
+                $"UPDATE {AUCTION_DATA_TABLE} SET {QUANTITY} = {QUANTITY} + @quantity " +
+                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId AND {PRICE_PER_UNIT} = @pricePerUnit", connection, transaction);
             addQuantity.Parameters.AddWithValue("@quantity", auctionItemInfo.quantity);
             addQuantity.Parameters.AddWithValue("@playerId", auctionItemInfo.playerId);
             addQuantity.Parameters.AddWithValue("@itemId", auctionItemInfo.itemId);
+            addQuantity.Parameters.AddWithValue("@pricePerUnit", auctionItemInfo.pricePerUnit);
             return await addQuantity.ExecuteNonQueryAsync() > 0;
         }
         public async Task<List<AuctionItemInfo>> GetItemsByName(string itemName,MySqlConnection connection,MySqlTransaction transaction)

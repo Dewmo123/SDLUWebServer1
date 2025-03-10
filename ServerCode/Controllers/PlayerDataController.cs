@@ -64,6 +64,25 @@ namespace ServerCode.Controllers
                 return StatusCode(500, new { message = "서버 오류가 발생했습니다.", error = ex.Message });
             }
         }
+        [HttpPost("post-to-auction")]
+        public async Task<bool> PostItemToAuction(AuctionItemInfo auctionItemInfo)
+        {
+            string? user = HttpContext.Session.GetString("User");
+            if (auctionItemInfo.playerId != user)
+                return false;
+            return await _dbManager.AddItemToAuction(auctionItemInfo);
+        }
+        [HttpPost("purchase-item")]
+        public async Task<bool> PurchaseItem(BuyerInfo buyerInfo)
+        {
+            string? user = HttpContext.Session.GetString("User");
+            if (buyerInfo.buyerId != user && user == buyerInfo.itemInfo.playerId)
+            {
+                Console.WriteLine("not same");
+                return false;
+            }
+            return await _dbManager.PurchaseItemInAuction(buyerInfo);
+        }
         [HttpPost("update-item")]
         public async Task<bool> UpdateItem([FromBody]PlayerItemInfo inPlayerItemInfo)
         {

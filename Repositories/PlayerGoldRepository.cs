@@ -30,12 +30,12 @@ namespace Repositories
 
         public async Task<PlayerGoldInfo> GetItemByPrimaryKeysAsync(PlayerGoldInfo inPlayerGoldInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
-            MySqlCommand getItem = new MySqlCommand($"SELECT * FROM {DBConfig.PLAYER_GOLD_TABLE} WHERE {DBConfig.PLAYER_ID} = @playerId");
+            MySqlCommand getItem = new MySqlCommand($"SELECT * FROM {DBConfig.PLAYER_GOLD_TABLE} WHERE {DBConfig.PLAYER_ID} = @playerId",connection,transaction);
             getItem.Parameters.AddWithValue("@playerId", inPlayerGoldInfo.playerId);
             var table = await getItem.ExecuteReaderAsync();
 
             PlayerGoldInfo? newInfo = null;
-            if(await table.ReadAsync())
+            if (await table.ReadAsync())
             {
                 newInfo = new PlayerGoldInfo()
                 {
@@ -43,12 +43,17 @@ namespace Repositories
                     gold = table.GetInt32(table.GetOrdinal(DBConfig.GOLD))
                 };
             }
+            await table.CloseAsync();
             return newInfo;
         }
 
-        public Task<bool> UpdateAsync(PlayerGoldInfo entity, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> UpdateAsync(PlayerGoldInfo info, MySqlConnection connection, MySqlTransaction transaction)
         {
-            throw new NotImplementedException();
+            MySqlCommand updateItem = new MySqlCommand($"UPDATE {DBConfig.PLAYER_GOLD_TABLE} SET {DBConfig.GOLD} = {DBConfig.GOLD} + @gold " +
+                $"WHERE {DBConfig.PLAYER_ID} = @playerId", connection, transaction);
+            updateItem.Parameters.AddWithValue("@playerId", info.playerId);
+            updateItem.Parameters.AddWithValue("@gold", info.gold);
+            return await updateItem.ExecuteNonQueryAsync() == 1;
         }
     }
 }
