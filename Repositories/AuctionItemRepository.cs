@@ -40,7 +40,7 @@ namespace Repositories
             {
                 info = new AuctionItemInfo()
                 {
-                    itemId = table.GetInt32(table.GetOrdinal(PRICE_PER_UNIT)),
+                    itemId = table.GetInt32(table.GetOrdinal(ITEM_ID)),
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
                     pricePerUnit = table.GetInt32(table.GetOrdinal(PRICE_PER_UNIT)),
                     quantity = table.GetInt32(table.GetOrdinal(QUANTITY))
@@ -53,7 +53,7 @@ namespace Repositories
         public async Task<bool> UpdateAsync(AuctionItemInfo auctionItemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand addQuantity = new MySqlCommand(
-                $"UPDATE {AUCTION_DATA_TABLE} SET {QUANTITY} = {QUANTITY} + @quantity " +
+                $"UPDATE {AUCTION_DATA_TABLE} SET {QUANTITY} = @quantity " +
                 $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId AND {PRICE_PER_UNIT} = @pricePerUnit", connection, transaction);
             addQuantity.Parameters.AddWithValue("@quantity", auctionItemInfo.quantity);
             addQuantity.Parameters.AddWithValue("@playerId", auctionItemInfo.playerId);

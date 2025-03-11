@@ -36,7 +36,7 @@ namespace Repositories
                             return false;
                         }
                         bool success = await _unitOfWork.PlayerInfos.AddAsync(playerInfo, conn, transaction);
-                        success &= await _unitOfWork.PlayerGold.AddAsync(new PlayerGoldInfo() { playerId = playerInfo.id, gold = 0 }, conn, transaction);
+                        success &= await _unitOfWork.PlayerData.AddAsync(new PlayerDataInfo() { playerId = playerInfo.id, gold = 0 }, conn, transaction);
                         await transaction.CommitAsync();
                         Console.WriteLine(success);
                         return success;
@@ -141,7 +141,10 @@ namespace Repositories
         {
             var info = await _unitOfWork.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn, transaction);
             if (info == null && itemInfo.quantity > 0)
+            {
+                Console.WriteLine(itemInfo.itemId);
                 return await _unitOfWork.PlayerItems.AddAsync(itemInfo, conn, transaction);
+            }
 
             int quantity = info.quantity + itemInfo.quantity;
             if (quantity < 0)
@@ -175,6 +178,9 @@ namespace Repositories
 
                 playerItemInfo = await _unitOfWork.PlayerItems.GetItemByPrimaryKeysAsync(playerItemInfo, conn, transaction);
                 var remainItemInfo = await _unitOfWork.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn, transaction);
+
+                if (playerItemInfo == null)
+                    return false;
 
                 int remainQuantity = playerItemInfo.quantity - auctionItemInfo.quantity;
                 if (remainQuantity < 0)
@@ -222,35 +228,34 @@ namespace Repositories
                 {
                     try
                     {
-                        PlayerGoldInfo playerInfo = new() { playerId = buyerInfo.buyerId, gold = 0 };
-                        playerInfo = await _unitOfWork.PlayerGold.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
+                        PlayerDataInfo playerInfo = new() { playerId = buyerInfo.buyerId, gold = 0 };
+                        playerInfo = await _unitOfWork.PlayerData.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
 
                         AuctionItemInfo auctionItem = buyerInfo.itemInfo;
                         auctionItem = await _unitOfWork.AuctionItems.GetItemByPrimaryKeysAsync(auctionItem, conn, transaction);
-
+                        Console.WriteLine($"auctionItemId: " + auctionItem.itemId);
                         if (playerInfo == null || auctionItem == null)
-                        {
-                            Console.WriteLine("asdass");
                             return false;
-                        }
 
                         if (playerInfo.gold < buyerInfo.NeededMoney || auctionItem.quantity < buyerInfo.buyCount)
-                        {
-                            Console.WriteLine("asd");
                             return false;
-                        }
 
                         //돈 빼고 아이템 추가하고 옥션에서 아이템 빼고 리턴
                         bool success = true;
+                        
                         playerInfo.gold -= buyerInfo.NeededMoney;
                         auctionItem.quantity -= buyerInfo.buyCount;
-                        success &= await _unitOfWork.PlayerGold.UpdateAsync(playerInfo, conn, transaction);
-                        Console.WriteLine(success);
+                        Console.WriteLine(auctionItem.quantity);
+                        PlayerDataInfo sellerInfo = new() { playerId = auctionItem.playerId, gold = 0 };
+                        sellerInfo = await _unitOfWork.PlayerData.GetItemByPrimaryKeysAsync(sellerInfo, conn, transaction);
+                        sellerInfo.gold += buyerInfo.NeededMoney;
+
+                        success &= await _unitOfWork.PlayerData.UpdateAsync(sellerInfo, conn, transaction);
+                        success &= await _unitOfWork.PlayerData.UpdateAsync(playerInfo, conn, transaction);
                         success &= await _unitOfWork.AuctionItems.UpdateAsync(auctionItem, conn, transaction);
-                        Console.WriteLine(success);
+
                         PlayerItemInfo itemInfo = new() { itemId = auctionItem.itemId, playerId = playerInfo.playerId, quantity = buyerInfo.buyCount };
                         success &= await CheckConditionAndChangePlayerItem(itemInfo, conn, transaction);
-                        Console.WriteLine(success);
                         if (success)
                             await transaction.CommitAsync();
                         else

@@ -12,7 +12,7 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            LogIn(1,PurchaseItemFromAuction);
+            LogIn(1, PurchaseItemFromAuction);
             while (true) { }
         }
         static async void AddItemToPlayer()
@@ -21,7 +21,7 @@ namespace TestClient
             PlayerItemInfo itemInfo = new PlayerItemInfo()
             {
                 itemId = 1,
-                playerId = "qwweewq1",
+                playerId = "qwweewq2",
                 quantity = 100
             };
             string json = JsonConvert.SerializeObject(itemInfo);
@@ -37,7 +37,7 @@ namespace TestClient
             var itemInfo = new AuctionItemInfo()
             {
                 itemId = 1,
-                playerId = "qwweewq1",
+                playerId = "qwweewq2",
                 pricePerUnit = 5,
                 quantity = 20
             };
@@ -53,11 +53,11 @@ namespace TestClient
             var itemInfo = new BuyerInfo()
             {
                 buyCount = 5,
-                buyerId = "qwweewq2",
+                buyerId = "qwweewq1",
                 itemInfo = new AuctionItemInfo()
                 {
                     itemId = 1,
-                    playerId = "qwweewq1",
+                    playerId = "qwweewq2",
                     pricePerUnit = 5,
                     quantity = 10
                 }
@@ -68,16 +68,17 @@ namespace TestClient
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
         }
-        static async void LogIn(int id,Action callback)
+        static async void LogIn(int id, Action callback)
         {
             string url = "http://localhost:3303/api/log-in";
-            PlayerInfo pc = new PlayerInfo { id = $"qwweewq2", password = "qqwweedd" };
+            PlayerInfo pc = new PlayerInfo { id = $"qwweewq{id}", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage msg = await client.PostAsync(url, content);
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
-            callback();
+            for (int i = 0; i < 10; i++)
+                callback();
         }
         static async Task GetUserInfo()
         {

@@ -36,7 +36,7 @@
             quantity = q;
         }
     }
-    public record class PlayerGoldInfo
+    public record class PlayerDataInfo
     {
         public string? playerId { get; set; }
         public int gold { get; set; }
