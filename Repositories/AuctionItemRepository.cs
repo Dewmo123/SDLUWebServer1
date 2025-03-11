@@ -18,9 +18,14 @@ namespace Repositories
             return await addNewItem.ExecuteNonQueryAsync() > 0;
         }
 
-        public async Task<bool> DeleteAsync(AuctionItemInfo entity, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> DeleteWithPrimaryKeysAsync(AuctionItemInfo entity, MySqlConnection connection, MySqlTransaction transaction)
         {
-            throw new NotImplementedException();
+            MySqlCommand deleteAuctionItem = new MySqlCommand($"DELETE FROM {AUCTION_DATA_TABLE}" +
+                $" WHERE {PLAYER_ID} = @playerId AND {PRICE_PER_UNIT} = @pricePerUnit AND {ITEM_ID} = @itemId",connection,transaction);
+            deleteAuctionItem.Parameters.AddWithValue("@playerId", entity.playerId);
+            deleteAuctionItem.Parameters.AddWithValue("@pricePerUnit", entity.pricePerUnit);
+            deleteAuctionItem.Parameters.AddWithValue("@itemId", entity.itemId);
+            return await deleteAuctionItem.ExecuteNonQueryAsync() == 1;
         }
 
         public async Task<List<AuctionItemInfo>> GetAllItemsAsync(MySqlConnection connection, MySqlTransaction transaction)

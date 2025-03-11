@@ -18,7 +18,7 @@ namespace Repositories
 
             return await cmd.ExecuteNonQueryAsync() > 0;
         }
-        public async Task<bool> DeleteAsync(PlayerItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> DeleteWithPrimaryKeysAsync(PlayerItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             var cmd = new MySqlCommand(Queries.DeleteItem, connection, transaction);
             cmd.Parameters.AddWithValue("@playerId", itemInfo.playerId);

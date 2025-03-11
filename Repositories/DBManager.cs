@@ -242,17 +242,21 @@ namespace Repositories
 
                         //돈 빼고 아이템 추가하고 옥션에서 아이템 빼고 리턴
                         bool success = true;
-                        
+
                         playerInfo.gold -= buyerInfo.NeededMoney;
-                        auctionItem.quantity -= buyerInfo.buyCount;
+                        int remain = auctionItem.quantity -= buyerInfo.buyCount;
                         Console.WriteLine(auctionItem.quantity);
+
                         PlayerDataInfo sellerInfo = new() { playerId = auctionItem.playerId, gold = 0 };
                         sellerInfo = await _unitOfWork.PlayerData.GetItemByPrimaryKeysAsync(sellerInfo, conn, transaction);
                         sellerInfo.gold += buyerInfo.NeededMoney;
 
                         success &= await _unitOfWork.PlayerData.UpdateAsync(sellerInfo, conn, transaction);
                         success &= await _unitOfWork.PlayerData.UpdateAsync(playerInfo, conn, transaction);
-                        success &= await _unitOfWork.AuctionItems.UpdateAsync(auctionItem, conn, transaction);
+                        if (remain == 0)
+                            success &= await _unitOfWork.AuctionItems.DeleteWithPrimaryKeysAsync(auctionItem, conn, transaction);
+                        else
+                            success &= await _unitOfWork.AuctionItems.UpdateAsync(auctionItem, conn, transaction);
 
                         PlayerItemInfo itemInfo = new() { itemId = auctionItem.itemId, playerId = playerInfo.playerId, quantity = buyerInfo.buyCount };
                         success &= await CheckConditionAndChangePlayerItem(itemInfo, conn, transaction);

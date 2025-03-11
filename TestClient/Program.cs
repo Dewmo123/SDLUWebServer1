@@ -77,7 +77,7 @@ namespace TestClient
             HttpResponseMessage msg = await client.PostAsync(url, content);
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 1; i++)
                 callback();
         }
         static async Task GetUserInfo()

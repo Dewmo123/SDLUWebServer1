@@ -22,7 +22,7 @@ namespace Repositories
             }
         }
 
-        public async Task<bool> DeleteAsync(ItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> DeleteWithPrimaryKeysAsync(ItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
                 MySqlCommand command = new MySqlCommand($"DELETE FROM {DBConfig.ITEM_DATA_TABLE} WHERE {DBConfig.ITEM_ID}=@itemId", connection,transaction);
                 command.Parameters.AddWithValue("@itemId", itemInfo.itemId);

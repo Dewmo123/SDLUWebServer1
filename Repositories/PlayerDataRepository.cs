@@ -18,7 +18,7 @@ namespace Repositories
             return await addGoldInfo.ExecuteNonQueryAsync() == 1;
         }
 
-        public Task<bool> DeleteAsync(PlayerDataInfo entity, MySqlConnection connection, MySqlTransaction transaction)
+        public Task<bool> DeleteWithPrimaryKeysAsync(PlayerDataInfo entity, MySqlConnection connection, MySqlTransaction transaction)
         {
             throw new NotImplementedException();
         }

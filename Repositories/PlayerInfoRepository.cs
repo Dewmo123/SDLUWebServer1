@@ -14,7 +14,7 @@ namespace Repositories
             var table = await command.ExecuteNonQueryAsync();
             return table == 1;
         }
-        public Task<bool> DeleteAsync(PlayerInfo playerInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public Task<bool> DeleteWithPrimaryKeysAsync(PlayerInfo playerInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             throw new NotImplementedException();
         }
