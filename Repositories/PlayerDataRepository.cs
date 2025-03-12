@@ -55,5 +55,15 @@ namespace Repositories
             updateItem.Parameters.AddWithValue("@gold", info.gold);
             return await updateItem.ExecuteNonQueryAsync() == 1;
         }
+        public async Task<bool> ChangeQuantityFromPlayer(PlayerDataInfo dataInfo, MySqlConnection conn, MySqlTransaction transaction)
+        {
+            var info = await GetItemByPrimaryKeysAsync(dataInfo, conn, transaction);
+
+            int gold = dataInfo.gold + info.gold;
+            if (gold < 0)
+                return false;
+            info.gold = gold;
+            return await UpdateAsync(info, conn, transaction);
+        }
     }
 }

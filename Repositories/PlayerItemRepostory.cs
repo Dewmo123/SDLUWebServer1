@@ -62,5 +62,20 @@ namespace Repositories
 
             return await cmd.ExecuteNonQueryAsync() > 0;
         }
+        public async Task<bool> CheckConditionAndChangePlayerItem(PlayerItemInfo itemInfo, MySqlConnection conn, MySqlTransaction transaction)
+        {
+            var info = await GetItemByPrimaryKeysAsync(itemInfo, conn, transaction);
+            if (info == null && itemInfo.quantity > 0)
+            {
+                Console.WriteLine(itemInfo.itemId);
+                return await AddAsync(itemInfo, conn, transaction);
+            }
+
+            int quantity = info.quantity + itemInfo.quantity;
+            if (quantity < 0)
+                return false;
+            info.quantity = quantity;
+            return await UpdateAsync(info, conn, transaction);
+        }
     }
 }

@@ -61,23 +61,19 @@ namespace Repositories
         public async Task<bool> LogIn(PlayerInfo playerInfo)
         {
 
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+            using MySqlConnection conn = new MySqlConnection(_dbAddress);
+            await conn.OpenAsync();
+            using MySqlTransaction transaction = await conn.BeginTransactionAsync();
+            try
             {
-                await conn.OpenAsync();
-                using (MySqlTransaction transaction = await conn.BeginTransactionAsync())
-                {
-                    try
-                    {
-                        var info = await _unitOfWork.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
-                        await transaction.CommitAsync();
-                        return info.password == playerInfo.password;
-                    }
-                    catch (MySqlException)
-                    {
-                        await transaction.RollbackAsync();
-                        return false;
-                    }
-                }
+                var info = await _unitOfWork.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
+                await transaction.CommitAsync();
+                return info.password == playerInfo.password;
+            }
+            catch (MySqlException)
+            {
+                await transaction.RollbackAsync();
+                return false;
             }
         }
 
@@ -123,7 +119,7 @@ namespace Repositories
             using var transaction = await conn.BeginTransactionAsync();
             try
             {
-                return await CheckConditionAndChangePlayerItem(itemInfo, conn, transaction);
+                return await _unitOfWork.PlayerItems.CheckConditionAndChangePlayerItem(itemInfo, conn, transaction);
             }
             catch (Exception)
             {
@@ -137,27 +133,7 @@ namespace Repositories
             }
         }
 
-        private async Task<bool> CheckConditionAndChangePlayerItem(PlayerItemInfo itemInfo, MySqlConnection conn, MySqlTransaction transaction)
-        {
-            var info = await _unitOfWork.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn, transaction);
-            if (info == null && itemInfo.quantity > 0)
-            {
-                Console.WriteLine(itemInfo.itemId);
-                return await _unitOfWork.PlayerItems.AddAsync(itemInfo, conn, transaction);
-            }
 
-            int quantity = info.quantity + itemInfo.quantity;
-            if (quantity < 0)
-                return false;
-
-            PlayerItemInfo newItemInfo = new()
-            {
-                itemId = info.itemId,
-                playerId = info.playerId,
-                quantity = quantity
-            };
-            return await _unitOfWork.PlayerItems.UpdateAsync(newItemInfo, conn, transaction);
-        }
 
         private bool DeleteItem(MySqlConnection conn, MySqlTransaction transaction,
             PlayerItemInfo itemInfo)
@@ -259,7 +235,7 @@ namespace Repositories
                             success &= await _unitOfWork.AuctionItems.UpdateAsync(auctionItem, conn, transaction);
 
                         PlayerItemInfo itemInfo = new() { itemId = auctionItem.itemId, playerId = playerInfo.playerId, quantity = buyerInfo.buyCount };
-                        success &= await CheckConditionAndChangePlayerItem(itemInfo, conn, transaction);
+                        success &= await _unitOfWork.PlayerItems.CheckConditionAndChangePlayerItem(itemInfo, conn, transaction);
                         if (success)
                             await transaction.CommitAsync();
                         else
@@ -273,6 +249,26 @@ namespace Repositories
                     }
                 }
             }
+        }
+        public async Task<bool> CancelAuctionItem(AuctionItemInfo auctionItemInfo)
+        {
+            using MySqlConnection conn = new MySqlConnection(_dbAddress);
+            await conn.OpenAsync();
+            using MySqlTransaction transaction = await conn.BeginTransactionAsync();
+            auctionItemInfo = await _unitOfWork.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn, transaction);
+            bool success = true;
+            success &= await _unitOfWork.AuctionItems.DeleteWithPrimaryKeysAsync(auctionItemInfo, conn, transaction);
+            Console.WriteLine(success);
+            PlayerItemInfo playerItemInfo = new(auctionItemInfo);
+            Console.WriteLine(playerItemInfo.quantity);
+            success &= await _unitOfWork.PlayerItems.CheckConditionAndChangePlayerItem(playerItemInfo, conn, transaction);
+            Console.WriteLine(success);
+
+            if (success)
+                await transaction.CommitAsync();
+            else
+                await transaction.RollbackAsync();
+            return success;
         }
         private bool AddNewItemToAuction(MySqlConnection conn, MySqlTransaction transaction, AuctionItemInfo auctionItemInfo)
         {

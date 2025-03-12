@@ -91,6 +91,14 @@ namespace ServerCode.Controllers
                 return false;
             return await _dbManager.ChangePlayerItemQuantityAsync(inPlayerItemInfo);
         }
+        [HttpDelete("cancel-auction-item")]
+        public async Task<bool> CancelItem([FromQuery]AuctionItemInfo inAuctionItemInfo)
+        {
+            string? playerId = HttpContext.Session.GetString("User");
+            if (playerId == null || playerId != inAuctionItemInfo.playerId)
+                return false;
+            return await _dbManager.CancelAuctionItem(inAuctionItemInfo);
+        }
     }
 
     public class ItemUpdateRequest
