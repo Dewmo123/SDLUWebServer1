@@ -1,8 +1,9 @@
 ﻿using MySqlConnector;
+using Repositories;
 using ServerCode.Models;
 using static Repositories.DBConfig;
 
-namespace Repositories
+namespace DataAccessLayer.Repositories
 {
     public class PlayerDataRepository : IRepository<PlayerDataInfo>
     {
@@ -31,7 +32,7 @@ namespace Repositories
 
         public async Task<PlayerDataInfo> GetItemByPrimaryKeysAsync(PlayerDataInfo inPlayerGoldInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
-            MySqlCommand getItem = new MySqlCommand($"SELECT * FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = @playerId",connection,transaction);
+            MySqlCommand getItem = new MySqlCommand($"SELECT * FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = @playerId", connection, transaction);
             getItem.Parameters.AddWithValue("@playerId", inPlayerGoldInfo.playerId);
             var table = await getItem.ExecuteReaderAsync();
 

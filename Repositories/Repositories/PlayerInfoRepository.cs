@@ -1,8 +1,9 @@
 ﻿using MySqlConnector;
+using Repositories;
 using ServerCode.Models;
 using static Repositories.DBConfig;
 
-namespace Repositories
+namespace DataAccessLayer.Repositories
 {
     public class PlayerInfoRepository : IRepository<PlayerInfo>
     {
@@ -46,7 +47,7 @@ namespace Repositories
             return info;
         }
 
-        public  Task<bool> UpdateAsync(PlayerInfo entity, MySqlConnection connection, MySqlTransaction transaction)
+        public Task<bool> UpdateAsync(PlayerInfo entity, MySqlConnection connection, MySqlTransaction transaction)
         {
             throw new NotImplementedException();
         }

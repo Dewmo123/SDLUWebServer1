@@ -1,0 +1,51 @@
+﻿namespace ServerCode.DTO
+{
+    public record class PlayerInfoDTO
+    {
+        public string id { get; set; } = null!;
+        public string password { get; set; } = null!;
+    }
+    public record class AddToAuctionItemDTO
+    {
+        public string playerId { get; set; } = null!;
+        public int itemId { get; set; }
+        public int pricePerUnit { get; set; }
+        public int quantity { get; set; }
+        public int TotalPrice => pricePerUnit * quantity;
+    }
+    public record class PlayerItemInfo
+    {
+        public string playerId { get; set; } = null!;
+        public int itemId { get; set; }
+        public int quantity { get; set; }
+        public PlayerItemInfo()
+        {
+
+        }
+        //생성자
+        public PlayerItemInfo(AddToAuctionItemDTO auction)
+        {
+            playerId = auction.playerId;
+            itemId = auction.itemId;
+            quantity = auction.quantity;
+        }
+        public PlayerItemInfo(string pId, int iId, int q)
+        {
+            playerId = pId;
+            itemId = iId;
+            quantity = q;
+        }
+    }
+    public record class PlayerDataInfo
+    {
+        public string? playerId { get; set; }
+        public int gold { get; set; }
+    }
+    public record class BuyerInfo
+    {
+        public string? buyerId { get; set; }
+        public int buyCount { get; set; }
+        public AddToAuctionItemDTO itemInfo { get; set; } = null!;
+        public int NeededMoney => buyCount * itemInfo.pricePerUnit;
+    }
+}

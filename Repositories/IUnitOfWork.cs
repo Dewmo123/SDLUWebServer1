@@ -1,4 +1,5 @@
-﻿using MySqlConnector;
+﻿using DataAccessLayer.Repositories;
+using MySqlConnector;
 
 namespace Repositories
 {

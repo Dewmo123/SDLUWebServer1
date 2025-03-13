@@ -3,8 +3,9 @@ using ServerCode.Models;
 using static Repositories.DBConfig;
 using System.Transactions;
 using System.Data.Common;
+using Repositories;
 
-namespace Repositories
+namespace DataAccessLayer.Repositories
 {
     public class AuctionItemRepository : IRepository<AuctionItemInfo>
     {
@@ -21,7 +22,7 @@ namespace Repositories
         public async Task<bool> DeleteWithPrimaryKeysAsync(AuctionItemInfo entity, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand deleteAuctionItem = new MySqlCommand($"DELETE FROM {AUCTION_DATA_TABLE}" +
-                $" WHERE {PLAYER_ID} = @playerId AND {PRICE_PER_UNIT} = @pricePerUnit AND {ITEM_ID} = @itemId",connection,transaction);
+                $" WHERE {PLAYER_ID} = @playerId AND {PRICE_PER_UNIT} = @pricePerUnit AND {ITEM_ID} = @itemId", connection, transaction);
             deleteAuctionItem.Parameters.AddWithValue("@playerId", entity.playerId);
             deleteAuctionItem.Parameters.AddWithValue("@pricePerUnit", entity.pricePerUnit);
             deleteAuctionItem.Parameters.AddWithValue("@itemId", entity.itemId);
@@ -66,7 +67,7 @@ namespace Repositories
             addQuantity.Parameters.AddWithValue("@pricePerUnit", auctionItemInfo.pricePerUnit);
             return await addQuantity.ExecuteNonQueryAsync() > 0;
         }
-        public async Task<List<AuctionItemInfo>> GetItemsByName(string itemName,MySqlConnection connection,MySqlTransaction transaction)
+        public async Task<List<AuctionItemInfo>> GetItemsByName(string itemName, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand getItems = new MySqlCommand($"SELECT * FROM {AUCTION_DATA_TABLE} WHERE {ITEM_NAME} = @itemName");
             getItems.Parameters.AddWithValue("@itemName", itemName);

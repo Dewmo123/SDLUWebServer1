@@ -1,8 +1,9 @@
 ﻿using MySqlConnector;
+using Repositories;
 using ServerCode.Models;
 using static Repositories.DBConfig;
 
-namespace Repositories
+namespace DataAccessLayer.Repositories
 {
     public class PlayerItemRepostory : IRepository<PlayerItemInfo>
     {
@@ -40,7 +41,7 @@ namespace Repositories
 
             var table = await cmd.ExecuteReaderAsync();
             PlayerItemInfo? info = null;
-            if(await table.ReadAsync())
+            if (await table.ReadAsync())
             {
                 info = new PlayerItemInfo
                 {
