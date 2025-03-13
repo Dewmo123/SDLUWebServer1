@@ -19,13 +19,25 @@ builder.Services.AddSession(options =>
 });
 builder.Services.AddScoped(provider => new DBManager($"Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true"));
 //DBManager.Instance.ConnectDB($"Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true");
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("http://localhost", "https://example.com")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+                      });
+});
 builder.Services.AddControllers();
 //builder.Services.AddEndpointsApiExplorer();
 builder.WebHost.UseIISIntegration();
 var app = builder.Build();
 
 app.UseRouting();
+app.UseCors("AllowAllOrigins");
 app.UseSession();
 app.MapControllers();
 

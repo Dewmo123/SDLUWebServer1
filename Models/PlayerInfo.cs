@@ -45,7 +45,7 @@
     {
         public string? buyerId { get; set; }
         public int buyCount { get; set; }
-        public AuctionItemInfo? itemInfo { get; set; }
+        public AuctionItemInfo itemInfo { get; set; } = null!;
         public int NeededMoney => buyCount * itemInfo.pricePerUnit;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using MySqlConnector;
 using ServerCode.Models;
+using static Repositories.DBConfig;
 
 namespace Repositories
 {
@@ -8,7 +9,7 @@ namespace Repositories
         public async Task<bool> AddAsync(PlayerDataInfo inPlayerGoldInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand addGoldInfo = new MySqlCommand(
-                $"INSERT {DBConfig.PLAYER_DATA_TABLE} ({DBConfig.PLAYER_ID},{DBConfig.GOLD})" +
+                $"INSERT {PLAYER_DATA_TABLE} ({PLAYER_ID},{GOLD})" +
                 $" VALUES (@playerId,@gold)",
                 connection,
                 transaction
@@ -30,7 +31,7 @@ namespace Repositories
 
         public async Task<PlayerDataInfo> GetItemByPrimaryKeysAsync(PlayerDataInfo inPlayerGoldInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
-            MySqlCommand getItem = new MySqlCommand($"SELECT * FROM {DBConfig.PLAYER_DATA_TABLE} WHERE {DBConfig.PLAYER_ID} = @playerId",connection,transaction);
+            MySqlCommand getItem = new MySqlCommand($"SELECT * FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = @playerId",connection,transaction);
             getItem.Parameters.AddWithValue("@playerId", inPlayerGoldInfo.playerId);
             var table = await getItem.ExecuteReaderAsync();
 
@@ -39,8 +40,8 @@ namespace Repositories
             {
                 newInfo = new PlayerDataInfo()
                 {
-                    playerId = table.GetString(table.GetOrdinal(DBConfig.PLAYER_ID)),
-                    gold = table.GetInt32(table.GetOrdinal(DBConfig.GOLD))
+                    playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
+                    gold = table.GetInt32(table.GetOrdinal(GOLD))
                 };
             }
             await table.CloseAsync();
@@ -49,8 +50,8 @@ namespace Repositories
 
         public async Task<bool> UpdateAsync(PlayerDataInfo info, MySqlConnection connection, MySqlTransaction transaction)
         {
-            MySqlCommand updateItem = new MySqlCommand($"UPDATE {DBConfig.PLAYER_DATA_TABLE} SET {DBConfig.GOLD} = @gold " +
-                $"WHERE {DBConfig.PLAYER_ID} = @playerId", connection, transaction);
+            MySqlCommand updateItem = new MySqlCommand($"UPDATE {PLAYER_DATA_TABLE} SET {GOLD} = @gold " +
+                $"WHERE {PLAYER_ID} = @playerId", connection, transaction);
             updateItem.Parameters.AddWithValue("@playerId", info.playerId);
             updateItem.Parameters.AddWithValue("@gold", info.gold);
             return await updateItem.ExecuteNonQueryAsync() == 1;

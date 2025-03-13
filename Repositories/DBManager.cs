@@ -207,7 +207,7 @@ namespace Repositories
                         PlayerDataInfo playerInfo = new() { playerId = buyerInfo.buyerId, gold = 0 };
                         playerInfo = await _unitOfWork.PlayerData.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
 
-                        AuctionItemInfo auctionItem = buyerInfo.itemInfo;
+                        AuctionItemInfo? auctionItem = buyerInfo.itemInfo;
                         auctionItem = await _unitOfWork.AuctionItems.GetItemByPrimaryKeysAsync(auctionItem, conn, transaction);
                         Console.WriteLine($"auctionItemId: " + auctionItem.itemId);
                         if (playerInfo == null || auctionItem == null)
@@ -255,20 +255,28 @@ namespace Repositories
             using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
             using MySqlTransaction transaction = await conn.BeginTransactionAsync();
-            auctionItemInfo = await _unitOfWork.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn, transaction);
-            bool success = true;
-            success &= await _unitOfWork.AuctionItems.DeleteWithPrimaryKeysAsync(auctionItemInfo, conn, transaction);
-            Console.WriteLine(success);
-            PlayerItemInfo playerItemInfo = new(auctionItemInfo);
-            Console.WriteLine(playerItemInfo.quantity);
-            success &= await _unitOfWork.PlayerItems.CheckConditionAndChangePlayerItem(playerItemInfo, conn, transaction);
-            Console.WriteLine(success);
+            try
+            {
+                auctionItemInfo = await _unitOfWork.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn, transaction);
+                if (auctionItemInfo == null)
+                    return false;
+                bool success = true;
+                success &= await _unitOfWork.AuctionItems.DeleteWithPrimaryKeysAsync(auctionItemInfo, conn, transaction);
+                PlayerItemInfo playerItemInfo = new(auctionItemInfo);
+                success &= await _unitOfWork.PlayerItems.CheckConditionAndChangePlayerItem(playerItemInfo, conn, transaction);
 
-            if (success)
-                await transaction.CommitAsync();
-            else
+                if (success)
+                    await transaction.CommitAsync();
+                else
+                    await transaction.RollbackAsync();
+                return success;
+            }
+            catch (NullReferenceException ex)
+            {
+                Console.WriteLine(ex);
                 await transaction.RollbackAsync();
-            return success;
+                return false;
+            }
         }
         private bool AddNewItemToAuction(MySqlConnection conn, MySqlTransaction transaction, AuctionItemInfo auctionItemInfo)
         {
