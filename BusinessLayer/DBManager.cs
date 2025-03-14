@@ -278,15 +278,12 @@ namespace Repositories
                 return false;
             }
         }
-        private bool AddNewItemToAuction(MySqlConnection conn, MySqlTransaction transaction, AuctionItemInfo auctionItemInfo)
+        public async Task<List<AuctionItemInfo>> GetAuctionItemByItemName(string itemName)
         {
-            return true;
-        }
-
-        private bool AddAuctionItemQuantity(MySqlConnection conn, MySqlTransaction transaction, AuctionItemInfo auctionItemInfo)
-        {
-
-            return true;
+            using MySqlConnection conn = new MySqlConnection(_dbAddress);
+            await conn.OpenAsync();
+            List<AuctionItemInfo> datas = await _unitOfWork.AuctionItems.GetItemsByName(itemName, conn);
+            return datas;
         }
         #endregion
 

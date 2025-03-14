@@ -49,7 +49,7 @@ namespace TestClient
         }
         static async void CancelItemFromAuction()
         {
-            string url = "http://localhost:3303/api/cancel-auction-item?playerId=qwweewq2&itemId=1&pricePerUnit=5&quantity=3";
+            string url = "http://localhost:3303/api/auction/cancel?playerId=qwweewq2&itemId=1&pricePerUnit=5&quantity=3";
             var itemInfo = new AuctionItemInfo()
             {
                 itemId = 1,
@@ -64,7 +64,7 @@ namespace TestClient
         }
         static async void PurchaseItemFromAuction()
         {
-            string url = "http://localhost:3303/api/purchase-item";
+            string url = "http://localhost:3303/api/auction/purchase-item";
             var itemInfo = new BuyerInfo()
             {
                 buyCount = 5,
@@ -85,7 +85,7 @@ namespace TestClient
         }
         static async void LogIn(int id, Action callback)
         {
-            string url = "http://localhost:3303/api/log-in";
+            string url = "http://localhost:3303/api/player/log-in";
             PlayerInfo pc = new PlayerInfo { id = $"qwweewq{id}", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -104,7 +104,7 @@ namespace TestClient
         }
         static async void SignUp(int id)
         {
-            string url = "http://localhost:3303/api/sign-up";
+            string url = "http://localhost:3303/api/player/sign-up";
             PlayerInfo pc = new PlayerInfo { id = $"qwweewq{id}", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");

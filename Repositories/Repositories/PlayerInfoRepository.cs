@@ -5,7 +5,11 @@ using static Repositories.DBConfig;
 
 namespace DataAccessLayer.Repositories
 {
-    public class PlayerInfoRepository : IRepository<PlayerInfo>
+    public interface IPlayerInfoRepository : IRepository<PlayerInfo>
+    {
+
+    }
+    public class PlayerInfoRepository : IPlayerInfoRepository
     {
 
         public async Task<bool> AddAsync(PlayerInfo playerInfo, MySqlConnection connection, MySqlTransaction transaction)

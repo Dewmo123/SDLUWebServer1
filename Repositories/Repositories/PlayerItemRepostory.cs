@@ -5,7 +5,11 @@ using static Repositories.DBConfig;
 
 namespace DataAccessLayer.Repositories
 {
-    public class PlayerItemRepostory : IRepository<PlayerItemInfo>
+    public interface IPlayerItemRepository : IRepository<PlayerItemInfo>
+    {
+        public Task<bool> CheckConditionAndChangePlayerItem(PlayerItemInfo itemInfo, MySqlConnection conn, MySqlTransaction transaction);
+    }
+    public class PlayerItemRepostory : IPlayerItemRepository
     {
 
         public async Task<bool> AddAsync(PlayerItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)

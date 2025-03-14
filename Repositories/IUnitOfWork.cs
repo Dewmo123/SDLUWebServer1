@@ -5,10 +5,11 @@ namespace Repositories
 {
     public interface IUnitOfWork : IDisposable
     {
-        PlayerInfoRepository PlayerInfos { get; }
-        ItemInfoRepository ItemInfos { get; }
-        PlayerItemRepostory PlayerItems{ get; }
-        AuctionItemRepository AuctionItems{ get; }
+        IPlayerInfoRepository PlayerInfos { get; }
+        IItemInfoRepository ItemInfos { get; }
+        IPlayerItemRepository PlayerItems{ get; }
+        IAuctionRepository AuctionItems{ get; }
+        IPlayerDataRepository PlayerData { get; }
     }
     public class UnitOfWork : IUnitOfWork
     {
@@ -24,14 +25,15 @@ namespace Repositories
             _dbAddress = address;
         }
 
-        public PlayerInfoRepository PlayerInfos => _playerInfoRepo ??= new PlayerInfoRepository();
+        public IPlayerDataRepository PlayerData => _playerGoldRepo ??= new PlayerDataRepository();
 
-        public ItemInfoRepository ItemInfos => _itemInfoRepo ??= new ItemInfoRepository();
+        public IPlayerInfoRepository PlayerInfos => _playerInfoRepo ??= new PlayerInfoRepository();
 
-        public PlayerItemRepostory PlayerItems => _playerItemRepo ??= new PlayerItemRepostory();
+        public IItemInfoRepository ItemInfos => _itemInfoRepo ??= new ItemInfoRepository();
 
-        public AuctionItemRepository AuctionItems => _auctionInfoRepo ??= new AuctionItemRepository();
-        public PlayerDataRepository PlayerData => _playerGoldRepo ??= new PlayerDataRepository();
+        public IPlayerItemRepository PlayerItems => _playerItemRepo ??= new PlayerItemRepostory();
+
+        public IAuctionRepository AuctionItems => _auctionInfoRepo ??= new AuctionItemRepository();
 
         public void Dispose()
         {

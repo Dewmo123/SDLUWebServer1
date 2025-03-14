@@ -7,7 +7,11 @@ using Repositories;
 
 namespace DataAccessLayer.Repositories
 {
-    public class AuctionItemRepository : IRepository<AuctionItemInfo>
+    public interface IAuctionRepository : IRepository<AuctionItemInfo>
+    {
+        public Task<List<AuctionItemInfo>> GetItemsByName(string itemName, MySqlConnection connection);
+    }
+    public class AuctionItemRepository : IAuctionRepository
     {
         public async Task<bool> AddAsync(AuctionItemInfo auctionItemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
@@ -67,9 +71,9 @@ namespace DataAccessLayer.Repositories
             addQuantity.Parameters.AddWithValue("@pricePerUnit", auctionItemInfo.pricePerUnit);
             return await addQuantity.ExecuteNonQueryAsync() > 0;
         }
-        public async Task<List<AuctionItemInfo>> GetItemsByName(string itemName, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<List<AuctionItemInfo>> GetItemsByName(string itemName, MySqlConnection connection)
         {
-            MySqlCommand getItems = new MySqlCommand($"SELECT * FROM {AUCTION_DATA_TABLE} WHERE {ITEM_NAME} = @itemName");
+            MySqlCommand getItems = new MySqlCommand($"SELECT * FROM {AUCTION_DATA_TABLE} WHERE {ITEM_NAME} = @itemName",connection);
             getItems.Parameters.AddWithValue("@itemName", itemName);
             var table = await getItems.ExecuteReaderAsync();
             List<AuctionItemInfo> items = new List<AuctionItemInfo>();

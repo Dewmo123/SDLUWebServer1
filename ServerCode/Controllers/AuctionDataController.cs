@@ -13,7 +13,7 @@ namespace ServerCode.Controllers
         {
             _dbManager = dbManager;
         }
-        [HttpPost("post-to-auction")]
+        [HttpPost("post")]
         public async Task<bool> PostItemToAuction(AuctionItemInfo auctionItemInfo)
         {
             string? user = HttpContext.Session.GetString("User");
@@ -21,7 +21,7 @@ namespace ServerCode.Controllers
                 return false;
             return await _dbManager.AddItemToAuction(auctionItemInfo);
         }
-        [HttpPost("purchase-item")]
+        [HttpPost("purchase")]
         public async Task<bool> PurchaseItem(BuyerInfo buyerInfo)
         {
             string? user = HttpContext.Session.GetString("User");
@@ -32,13 +32,21 @@ namespace ServerCode.Controllers
             }
             return await _dbManager.PurchaseItemInAuction(buyerInfo);
         }
-        [HttpDelete("cancel-auction-item")]
+        [HttpDelete("cancel")]
         public async Task<bool> CancelItem([FromQuery] AuctionItemInfo inAuctionItemInfo)
         {
             string? playerId = HttpContext.Session.GetString("User");
             if (playerId != inAuctionItemInfo.playerId)
                 return false;
             return await _dbManager.CancelAuctionItem(inAuctionItemInfo);
+        }
+        [HttpGet("get-items")]
+        public async Task<ActionResult<List<AuctionItemInfo>>?> GetItemsById(string itemName)
+        {
+            string? playerId = HttpContext.Session.GetString("User");
+            if (playerId == null)
+                return NotFound();
+            return await _dbManager.GetAuctionItemByItemName(itemName);
         }
     }
 }

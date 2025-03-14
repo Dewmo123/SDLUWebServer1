@@ -4,7 +4,11 @@ using ServerCode.Models;
 
 namespace DataAccessLayer.Repositories
 {
-    public class ItemInfoRepository : IRepository<ItemInfo>
+    public interface IItemInfoRepository : IRepository<ItemInfo>
+    {
+
+    }
+    public class ItemInfoRepository : IItemInfoRepository
     {
         public async Task<bool> AddAsync(ItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
