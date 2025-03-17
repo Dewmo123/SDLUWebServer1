@@ -46,7 +46,7 @@ namespace ServerCode.Controllers
         {
             string? playerId = HttpContext.Session.GetString("User");
             if (playerId == null)
-                return Unauthorized(new { message = "로그인이 필요합니다." });
+                return Unauthorized("로그인이 필요합니다.");
 
             if (playerId != request.PlayerId)
                 return StatusCode(403, new { message = "다른 플레이어의 아이템을 수정할 수 없습니다." });

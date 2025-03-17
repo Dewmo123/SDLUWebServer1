@@ -12,7 +12,7 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            LogIn(2, CancelItemFromAuction);
+            LogIn(2, AddItemToAuction);
             while (true) { }
         }
         static async void AddItemToPlayer()
@@ -33,7 +33,7 @@ namespace TestClient
         }
         static async void AddItemToAuction()
         {
-            string url = "http://localhost:3303/api/post-to-auction";
+            string url = "http://localhost:3303/api/auction/post";
             var itemInfo = new AuctionItemInfo()
             {
                 itemId = 1,

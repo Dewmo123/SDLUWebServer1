@@ -257,9 +257,6 @@ namespace Repositories
             using MySqlTransaction transaction = await conn.BeginTransactionAsync();
             try
             {
-                auctionItemInfo = await _unitOfWork.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn, transaction);
-                if (auctionItemInfo == null)
-                    return false;
                 bool success = true;
                 success &= await _unitOfWork.AuctionItems.DeleteWithPrimaryKeysAsync(auctionItemInfo, conn, transaction);
                 PlayerItemInfo playerItemInfo = new(auctionItemInfo);
@@ -282,7 +279,14 @@ namespace Repositories
         {
             using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
-            List<AuctionItemInfo> datas = await _unitOfWork.AuctionItems.GetItemsByName(itemName, conn);
+            List<AuctionItemInfo> datas = await _unitOfWork.AuctionItems.GetItemsByItemName(itemName, conn);
+            return datas;
+        }
+        public async Task<List<AuctionItemInfo>> GetAuctionnItemByPlayerId(string playerId)
+        {
+            using MySqlConnection conn = new MySqlConnection(_dbAddress);
+            await conn.OpenAsync();
+            var datas = await _unitOfWork.AuctionItems.GetItemsByPlayerId(playerId, conn);
             return datas;
         }
         #endregion

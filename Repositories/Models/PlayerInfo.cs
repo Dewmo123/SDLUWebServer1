@@ -11,6 +11,7 @@
         public int itemId { get; set; }
         public int pricePerUnit { get; set; }
         public int quantity { get; set; }
+        public string? itemName { get; set; }
         public int TotalPrice => pricePerUnit * quantity;
     }
     public record class PlayerItemInfo

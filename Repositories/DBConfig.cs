@@ -60,8 +60,8 @@
                 $"INSERT INTO {PLAYER_ITEM_TABLE} ({PLAYER_ID}, {ITEM_ID}, {QUANTITY}) " +
                 $"VALUES (@playerId, @itemId, @quantity)";
             public static string AddNewItemToAuction =>
-                $"INSERT INTO {AUCTION_DATA_TABLE} ({PLAYER_ID},{ITEM_ID},{PRICE_PER_UNIT},{QUANTITY})" +
-                $" VALUES (@playerId,@itemId,@pricePerUnit,@quantity)";
+                $"INSERT INTO {AUCTION_DATA_TABLE} ({PLAYER_ID},{ITEM_ID},{PRICE_PER_UNIT},{QUANTITY},{ITEM_NAME})" +
+                $" VALUES (@playerId,@itemId,@pricePerUnit,@quantity,@itemName)";
             public static string UpdateAuctionItemQuantity =>
                 $"UPDATE {AUCTION_DATA_TABLE} SET {QUANTITY} = {QUANTITY} + @quantity " +
                 $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId AND {PRICE_PER_UNIT} = @pricePerUnit";

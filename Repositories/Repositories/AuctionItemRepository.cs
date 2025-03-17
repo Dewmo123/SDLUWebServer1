@@ -9,7 +9,8 @@ namespace DataAccessLayer.Repositories
 {
     public interface IAuctionRepository : IRepository<AuctionItemInfo>
     {
-        public Task<List<AuctionItemInfo>> GetItemsByName(string itemName, MySqlConnection connection);
+        public Task<List<AuctionItemInfo>> GetItemsByItemName(string itemName, MySqlConnection connection);
+        public Task<List<AuctionItemInfo>> GetItemsByPlayerId(string playerId, MySqlConnection connection);
     }
     public class AuctionItemRepository : IAuctionRepository
     {
@@ -20,6 +21,7 @@ namespace DataAccessLayer.Repositories
             addNewItem.Parameters.AddWithValue("@itemId", auctionItemInfo.itemId);
             addNewItem.Parameters.AddWithValue("@pricePerUnit", auctionItemInfo.pricePerUnit);
             addNewItem.Parameters.AddWithValue("@quantity", auctionItemInfo.quantity);
+            addNewItem.Parameters.AddWithValue("@itemName", auctionItemInfo.itemName);
             return await addNewItem.ExecuteNonQueryAsync() > 0;
         }
 
@@ -53,7 +55,8 @@ namespace DataAccessLayer.Repositories
                     itemId = table.GetInt32(table.GetOrdinal(ITEM_ID)),
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
                     pricePerUnit = table.GetInt32(table.GetOrdinal(PRICE_PER_UNIT)),
-                    quantity = table.GetInt32(table.GetOrdinal(QUANTITY))
+                    quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
+                    itemName = table.GetString(table.GetOrdinal(ITEM_NAME))
                 };
             }
             await table.CloseAsync();
@@ -71,7 +74,7 @@ namespace DataAccessLayer.Repositories
             addQuantity.Parameters.AddWithValue("@pricePerUnit", auctionItemInfo.pricePerUnit);
             return await addQuantity.ExecuteNonQueryAsync() > 0;
         }
-        public async Task<List<AuctionItemInfo>> GetItemsByName(string itemName, MySqlConnection connection)
+        public async Task<List<AuctionItemInfo>> GetItemsByItemName(string itemName, MySqlConnection connection)
         {
             MySqlCommand getItems = new MySqlCommand($"SELECT * FROM {AUCTION_DATA_TABLE} WHERE {ITEM_NAME} = @itemName",connection);
             getItems.Parameters.AddWithValue("@itemName", itemName);
@@ -81,15 +84,36 @@ namespace DataAccessLayer.Repositories
             {
                 items.Add(new AuctionItemInfo()
                 {
-                    itemId = table.GetInt32(table.GetOrdinal(ITEM_NAME)),
+                    itemId = table.GetInt32(table.GetOrdinal(ITEM_ID)),
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
                     quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
-                    pricePerUnit = table.GetInt32(table.GetOrdinal(PRICE_PER_UNIT))
+                    pricePerUnit = table.GetInt32(table.GetOrdinal(PRICE_PER_UNIT)),
+                    itemName = itemName
                 });
             }
             await table.CloseAsync();
             return items;
         }
 
+        public async Task<List<AuctionItemInfo>> GetItemsByPlayerId(string playerId, MySqlConnection connection)
+        {
+            MySqlCommand getItems = new MySqlCommand($"SELECT * FROM {AUCTION_DATA_TABLE} WHERE {PLAYER_ID} = @playerId", connection);
+            getItems.Parameters.AddWithValue("@playerId", playerId);
+            var table = await getItems.ExecuteReaderAsync();
+            List<AuctionItemInfo> items = new List<AuctionItemInfo>();
+            while (await table.ReadAsync())
+            {
+                items.Add(new AuctionItemInfo()
+                {
+                    itemId = table.GetInt32(table.GetOrdinal(ITEM_ID)),
+                    playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
+                    quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
+                    pricePerUnit = table.GetInt32(table.GetOrdinal(PRICE_PER_UNIT)),
+                    itemName = playerId
+                });
+            }
+            await table.CloseAsync();
+            return items;
+        }
     }
 }
