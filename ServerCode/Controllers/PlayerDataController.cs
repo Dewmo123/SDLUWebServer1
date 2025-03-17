@@ -28,8 +28,10 @@ namespace ServerCode.Controllers
             if (await _dbManager.LogIn(info))
             {
                 HttpContext.Session.SetString("User", info.id);
+                Console.WriteLine($"LogIn {info.id} : Success");
                 return true;
             }
+            Console.WriteLine($"LogIn {info.id} : Failed");
             return false;
         }
         [HttpGet("userinfo")]

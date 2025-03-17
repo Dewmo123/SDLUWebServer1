@@ -33,12 +33,17 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddControllers();
 //builder.Services.AddEndpointsApiExplorer();
-builder.WebHost.UseIISIntegration();
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(3303);
+});
 var app = builder.Build();
 
 app.UseRouting();
 app.UseCors("AllowAllOrigins");
 app.UseSession();
+app.UseHttpsRedirection(); // HTTP 요청을 HTTPS로 리디렉트
+
 app.MapControllers();
 
 app.Run();
