@@ -8,6 +8,7 @@ namespace DataAccessLayer.Repositories
     public interface IPlayerItemRepository : IRepository<PlayerItemInfo>
     {
         public Task<bool> CheckConditionAndChangePlayerItem(PlayerItemInfo itemInfo, MySqlConnection conn, MySqlTransaction transaction);
+        public Task<List<PlayerItemInfo>> GetItemsByPlayerId(string playerId, MySqlConnection connection);
     }
     public class PlayerItemRepostory : IPlayerItemRepository
     {
@@ -81,6 +82,27 @@ namespace DataAccessLayer.Repositories
                 return false;
             info.quantity = quantity;
             return await UpdateAsync(info, conn, transaction);
+        }
+
+        public async Task<List<PlayerItemInfo>> GetItemsByPlayerId(string playerId, MySqlConnection connection)
+        {
+            MySqlCommand selectItems = new MySqlCommand(
+                $"SELECT * FROM {PLAYER_ITEM_TABLE}" +
+                $" WHERE {PLAYER_ID} = @playerId",connection);
+            selectItems.Parameters.AddWithValue("@playerId", playerId);
+            var table = await selectItems.ExecuteReaderAsync();
+            List<PlayerItemInfo> items=  new List<PlayerItemInfo>();
+            while (await table.ReadAsync())
+            {
+                items.Add(new PlayerItemInfo()
+                {
+                    itemId = table.GetInt32(table.GetOrdinal(ITEM_ID)),
+                    playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
+                    quantity = table.GetInt32(table.GetOrdinal(QUANTITY))
+                });
+            }
+            await table.CloseAsync();
+            return items;
         }
     }
 }

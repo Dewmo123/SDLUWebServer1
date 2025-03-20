@@ -22,7 +22,7 @@ namespace Repositories
 
         public async Task<bool> SignUp(PlayerInfo playerInfo)
         {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+            await using (MySqlConnection conn = new MySqlConnection(_dbAddress))
             {
                 await conn.OpenAsync();
                 using (MySqlTransaction transaction = await conn.BeginTransactionAsync())
@@ -51,10 +51,6 @@ namespace Repositories
                         await transaction.RollbackAsync();
                         return false;
                     }
-                    finally
-                    {
-                        await conn.CloseAsync();
-                    }
                 }
             }
         }
@@ -82,7 +78,7 @@ namespace Repositories
         #region ItemControl
         public async Task<bool> AddItemInfo(ItemInfo itemInfo)
         {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+            await using (MySqlConnection conn = new MySqlConnection(_dbAddress))
             {
                 await conn.OpenAsync();
                 using (MySqlTransaction transaction = await conn.BeginTransactionAsync())
@@ -114,7 +110,7 @@ namespace Repositories
         #region PlayerItemControl
         public async Task<bool> ChangePlayerItemQuantityAsync(PlayerItemInfo itemInfo)
         {
-            using var conn = new MySqlConnection(_dbAddress);
+            await using var conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
             using var transaction = await conn.BeginTransactionAsync();
             try
@@ -133,7 +129,12 @@ namespace Repositories
             }
         }
 
-
+        public async Task<List<PlayerItemInfo>> GetItemsByPlayerId(string playerId)
+        {
+            await using var conn = new MySqlConnection(_dbAddress);
+            await conn.OpenAsync();
+            return await _unitOfWork.PlayerItems.GetItemsByPlayerId(playerId,conn);
+        }
 
         private bool DeleteItem(MySqlConnection conn, MySqlTransaction transaction,
             PlayerItemInfo itemInfo)
@@ -145,7 +146,7 @@ namespace Repositories
         #region AuctionControl
         public async Task<bool> AddItemToAuction(AuctionItemInfo auctionItemInfo)
         {
-            using var conn = new MySqlConnection(_dbAddress);
+            await using var conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
             using var transaction = await conn.BeginTransactionAsync();
             try
@@ -197,7 +198,7 @@ namespace Repositories
 
         public async Task<bool> PurchaseItemInAuction(BuyerInfo buyerInfo)
         {
-            using (MySqlConnection conn = new MySqlConnection(_dbAddress))
+            await using (MySqlConnection conn = new MySqlConnection(_dbAddress))
             {
                 await conn.OpenAsync();
                 using (MySqlTransaction transaction = await conn.BeginTransactionAsync())
@@ -252,7 +253,7 @@ namespace Repositories
         }
         public async Task<bool> CancelAuctionItem(AuctionItemInfo auctionItemInfo)
         {
-            using MySqlConnection conn = new MySqlConnection(_dbAddress);
+            await using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
             using MySqlTransaction transaction = await conn.BeginTransactionAsync();
             try
@@ -277,14 +278,14 @@ namespace Repositories
         }
         public async Task<List<AuctionItemInfo>> GetAuctionItemByItemName(string itemName)
         {
-            using MySqlConnection conn = new MySqlConnection(_dbAddress);
+            await using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
             List<AuctionItemInfo> datas = await _unitOfWork.AuctionItems.GetItemsByItemName(itemName, conn);
             return datas;
         }
         public async Task<List<AuctionItemInfo>> GetAuctionnItemByPlayerId(string playerId)
         {
-            using MySqlConnection conn = new MySqlConnection(_dbAddress);
+            await using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
             var datas = await _unitOfWork.AuctionItems.GetItemsByPlayerId(playerId, conn);
             return datas;

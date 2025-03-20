@@ -44,20 +44,17 @@ namespace ServerCode.Controllers
         }
 
         [HttpPost("update-items")]
-        public async Task<IActionResult> UpdateItems([FromBody] ItemUpdateRequest request)
+        public async Task<bool> UpdateItems([FromBody] List<PlayerItemInfo> request)
         {
             string? playerId = HttpContext.Session.GetString("User");
             if (playerId == null)
-                return Unauthorized("로그인이 필요합니다.");
+                return false;
 
-            if (playerId != request.PlayerId)
-                return StatusCode(403, new { message = "다른 플레이어의 아이템을 수정할 수 없습니다." });
-
-            foreach (var itemUpdate in request.Updates)
+            foreach (var itemUpdate in request)
                 if (await _dbManager.ChangePlayerItemQuantityAsync(itemUpdate) == false)
-                    return BadRequest(new { message = $"아이템 {itemUpdate.itemId} 업데이트 실패" });
+                    return false;
 
-            return Ok(new { message = "아이템이 성공적으로 업데이트되었습니다." });
+            return true;
         }
         [HttpPost("update-item")]
         public async Task<bool> UpdateItem([FromBody] PlayerItemInfo inPlayerItemInfo)
@@ -67,11 +64,13 @@ namespace ServerCode.Controllers
                 return false;
             return await _dbManager.ChangePlayerItemQuantityAsync(inPlayerItemInfo);
         }
-    }
-
-    public class ItemUpdateRequest
-    {
-        public string PlayerId { get; set; } = null!;
-        public List<PlayerItemInfo> Updates { get; set; } = null!;
+        [HttpGet("get-my-items")]
+        public async Task<ActionResult<List<PlayerItemInfo>?>> GetItemsByPlayerId()
+        {
+            string? userId = HttpContext.Session.GetString("User");
+            if (userId == null)
+                return NotFound();
+            return await _dbManager.GetItemsByPlayerId(userId);
+        }
     }
 }
