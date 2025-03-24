@@ -17,7 +17,7 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true; // 보안 강화
     options.Cookie.IsEssential = true; // 필수 쿠키로 설정
 });
-builder.Services.AddScoped(provider => new DBManager($"Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true"));
+builder.Services.AddScoped(provider => new DBManager($"Server=127.0.0.1;Port=3306;Database=SDLUDBServer;Uid=root;Pwd=1652;Pooling=true"));
 //DBManager.Instance.ConnectDB($"Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true");
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
@@ -36,13 +36,16 @@ builder.Services.AddControllers();
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(3303);
+    options.Limits.MaxConcurrentConnections = 100;  // 동시 연결 최대 100개
+    options.Limits.MaxConcurrentUpgradedConnections = 100;
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
 });
+builder.WebHost.UseKestrel();
 var app = builder.Build();
-
 app.UseRouting();
 app.UseCors("AllowAllOrigins");
 app.UseSession();
-app.UseHttpsRedirection(); // HTTP 요청을 HTTPS로 리디렉트
+//app.UseHttpsRedirection(); // HTTP 요청을 HTTPS로 리디렉트
 
 app.MapControllers();
 

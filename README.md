@@ -26,8 +26,15 @@ create table auction(
     item_id int,
     quantity int default 1,
     price_per_unit int default 1,
-    primary key (player_id,item_id),
+    primary key (player_id,item_id,price_per_unit),
     foreign key(player_id) references player_login_data(player_id) on delete cascade,
     foreign key(item_id) references item_data(item_id) on delete cascade
+);
+create table player_data(
+	player_id varchar(8),
+    gold int,
+    dictionary text,
+    primary key (player_id),
+    foreign key (player_id) references player_login_data(player_id) on delete cascade
 );
 ````

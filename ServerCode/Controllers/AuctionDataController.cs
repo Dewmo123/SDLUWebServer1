@@ -45,6 +45,7 @@ namespace ServerCode.Controllers
         public async Task<ActionResult<List<AuctionItemInfo>>?> GetItemsByItemName(string itemName)
         {
             string? playerId = HttpContext.Session.GetString("User");
+            Console.WriteLine($"playerId Access: {itemName}");
             if (playerId == null)
                 return NotFound();
             return await _dbManager.GetAuctionItemByItemName(itemName);

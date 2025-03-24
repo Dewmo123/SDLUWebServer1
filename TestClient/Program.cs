@@ -12,7 +12,8 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            LogIn(2, AddItemToAuction);
+            for (int i = 0; i < 100; i++)
+                LogIn(2, null);
             while (true) { }
         }
         static async void AddItemToPlayer()
@@ -85,15 +86,14 @@ namespace TestClient
         }
         static async void LogIn(int id, Action callback)
         {
-            string url = "http://localhost:3303/api/player/log-in";
-            PlayerInfo pc = new PlayerInfo { id = $"qwweewq{id}", password = "qqwweedd" };
+            string url = "http://172.31.1.229:3303/api/player/log-in";
+            PlayerInfo pc = new PlayerInfo { id = $"qwer", password = "1234" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            Console.WriteLine("LogIN");
             HttpResponseMessage msg = await client.PostAsync(url, content);
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
-            for (int i = 0; i < 1; i++)
-                callback();
         }
         static async Task GetUserInfo()
         {
