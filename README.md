@@ -16,6 +16,7 @@ create table item_data(
 create table player_item_data(
 	player_id varchar(8),
     item_id int,
+    item_name varchar(50),
     quantity int default 1,
     primary key (player_id,item_id),
     foreign key (player_id) references player_login_data(player_id) on delete cascade,
