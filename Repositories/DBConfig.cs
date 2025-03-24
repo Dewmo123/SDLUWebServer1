@@ -51,14 +51,8 @@
                 $"DELETE FROM {PLAYER_ITEM_TABLE} " +
                 $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
 
-            public static string UpdateItemQuantity =>
-                $"UPDATE {PLAYER_ITEM_TABLE} " +
-                $"SET {QUANTITY} = @quantity " +
-                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId";
 
-            public static string InsertItem =>
-                $"INSERT INTO {PLAYER_ITEM_TABLE} ({PLAYER_ID}, {ITEM_ID}, {QUANTITY}) " +
-                $"VALUES (@playerId, @itemId, @quantity)";
+
             public static string AddNewItemToAuction =>
                 $"INSERT INTO {AUCTION_DATA_TABLE} ({PLAYER_ID},{ITEM_ID},{PRICE_PER_UNIT},{QUANTITY},{ITEM_NAME})" +
                 $" VALUES (@playerId,@itemId,@pricePerUnit,@quantity,@itemName)";

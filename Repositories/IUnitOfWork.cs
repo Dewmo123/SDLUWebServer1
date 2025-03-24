@@ -11,7 +11,7 @@ namespace Repositories
         IAuctionRepository AuctionItems{ get; }
         IPlayerDataRepository PlayerData { get; }
     }
-    public class UnitOfWork : IUnitOfWork
+    public class RepositoryManager : IUnitOfWork
     {
         private readonly string _dbAddress;
 
@@ -20,7 +20,7 @@ namespace Repositories
         private AuctionItemRepository _auctionInfoRepo;
         private ItemInfoRepository _itemInfoRepo;
         private PlayerDataRepository _playerGoldRepo;
-        public UnitOfWork(string address)
+        public RepositoryManager(string address)
         {
             _dbAddress = address;
         }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ServerCode.Models;
 using Repositories;
+using BusinessLayer.Services;
 
 namespace ServerCode.Controllers
 {
@@ -8,10 +9,10 @@ namespace ServerCode.Controllers
     [Route("/api/player")]
     public class PlayerDataController : Controller
     {
-        private readonly DBManager _dbManager;
+        private readonly PlayerLogInDataService playerDataService;
         public PlayerDataController(DBManager manager)
         {
-            _dbManager = manager;
+            playerDataService = manager.playerLogInDataService;
         }
         [HttpPost("sign-up")]
         public async Task<bool> SignUp([FromBody] PlayerInfo info)
@@ -19,13 +20,13 @@ namespace ServerCode.Controllers
             Console.WriteLine(info.id);
             if (info.id.Length > 8 && info.password.Length > 20)
                 return false;
-            return await _dbManager.SignUp(info);
+            return await playerDataService.SignUp(info);
         }
         [HttpPost("log-in")]
         public async Task<bool> Login([FromBody] PlayerInfo info)
         {
             Console.WriteLine($"LogIn: {info.id}");
-            if (await _dbManager.LogIn(info))
+            if (await playerDataService.LogIn(info))
             {
                 HttpContext.Session.SetString("User", info.id);
                 Console.WriteLine($"LogIn {info.id} : Success");
@@ -41,36 +42,6 @@ namespace ServerCode.Controllers
             if (name == null)
                 return "Please Login";
             return name;
-        }
-
-        [HttpPost("update-items")]
-        public async Task<bool> UpdateItems([FromBody] List<PlayerItemInfo> request)
-        {
-            string? playerId = HttpContext.Session.GetString("User");
-            if (playerId == null)
-                return false;
-
-            foreach (var itemUpdate in request)
-                if (await _dbManager.ChangePlayerItemQuantityAsync(itemUpdate) == false)
-                    return false;
-
-            return true;
-        }
-        [HttpPost("update-item")]
-        public async Task<bool> UpdateItem([FromBody] PlayerItemInfo inPlayerItemInfo)
-        {
-            string? playerId = HttpContext.Session.GetString("User");
-            if (playerId != inPlayerItemInfo.playerId)
-                return false;
-            return await _dbManager.ChangePlayerItemQuantityAsync(inPlayerItemInfo);
-        }
-        [HttpGet("get-my-items")]
-        public async Task<ActionResult<List<PlayerItemInfo>?>> GetItemsByPlayerId()
-        {
-            string? userId = HttpContext.Session.GetString("User");
-            if (userId == null)
-                return NotFound();
-            return await _dbManager.GetItemsByPlayerId(userId);
         }
     }
 }

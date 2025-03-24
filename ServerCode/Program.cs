@@ -26,7 +26,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("http://localhost", "https://example.com")
+                          policy.WithOrigins("http://0.0.0.0", "https://example.com")
                                 .AllowAnyHeader()
                                 .AllowAnyMethod();
                       });
@@ -46,7 +46,6 @@ app.UseRouting();
 app.UseCors("AllowAllOrigins");
 app.UseSession();
 //app.UseHttpsRedirection(); // HTTP 요청을 HTTPS로 리디렉트
-
 app.MapControllers();
 
 app.Run();

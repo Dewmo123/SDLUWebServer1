@@ -19,6 +19,7 @@
         public string playerId { get; set; } = null!;
         public int itemId { get; set; }
         public int quantity { get; set; }
+        public string? itemName { get; set; }
         public PlayerItemInfo()
         {
 
@@ -29,6 +30,7 @@
             playerId = auction.playerId;
             itemId = auction.itemId;
             quantity = auction.quantity;
+            itemName = auction.itemName;
         }
         public PlayerItemInfo(string pId, int iId, int q)
         {

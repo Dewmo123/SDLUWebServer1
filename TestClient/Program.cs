@@ -12,8 +12,7 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            for (int i = 0; i < 100; i++)
-                LogIn(2, null);
+            LogIn(2, null);
             while (true) { }
         }
         static async void AddItemToPlayer()

@@ -17,10 +17,13 @@ namespace DataAccessLayer.Repositories
         {
             if (itemInfo.quantity <= 0) return false;
 
-            var cmd = new MySqlCommand(Queries.InsertItem, connection, transaction);
+            var cmd = new MySqlCommand(
+                $"INSERT INTO {PLAYER_ITEM_TABLE} ({PLAYER_ID}, {ITEM_ID}, {QUANTITY},{ITEM_NAME}) " +
+                $"VALUES (@playerId, @itemId, @quantity,@itemName)", connection, transaction);
             cmd.Parameters.AddWithValue("@playerId", itemInfo.playerId);
             cmd.Parameters.AddWithValue("@itemId", itemInfo.itemId);
             cmd.Parameters.AddWithValue("@quantity", itemInfo.quantity);
+            cmd.Parameters.AddWithValue("@itemName", itemInfo.itemName);
 
             return await cmd.ExecuteNonQueryAsync() > 0;
         }
@@ -52,7 +55,8 @@ namespace DataAccessLayer.Repositories
                 {
                     itemId = table.GetInt32(table.GetOrdinal(ITEM_ID)),
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
-                    quantity = table.GetInt32(table.GetOrdinal(QUANTITY))
+                    quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
+                    itemName = table.GetString(table.GetOrdinal(ITEM_NAME))
                 };
             }
             await table.CloseAsync();
@@ -61,7 +65,11 @@ namespace DataAccessLayer.Repositories
 
         public async Task<bool> UpdateAsync(PlayerItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
-            var cmd = new MySqlCommand(Queries.UpdateItemQuantity, connection, transaction);
+            var cmd = new MySqlCommand(
+                $"UPDATE {PLAYER_ITEM_TABLE} " +
+                $"SET {QUANTITY} = @quantity " +
+                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId", connection, transaction);
+
             cmd.Parameters.AddWithValue("@playerId", itemInfo.playerId);
             cmd.Parameters.AddWithValue("@itemId", itemInfo.itemId);
             cmd.Parameters.AddWithValue("@quantity", itemInfo.quantity);
@@ -88,17 +96,18 @@ namespace DataAccessLayer.Repositories
         {
             MySqlCommand selectItems = new MySqlCommand(
                 $"SELECT * FROM {PLAYER_ITEM_TABLE}" +
-                $" WHERE {PLAYER_ID} = @playerId",connection);
+                $" WHERE {PLAYER_ID} = @playerId", connection);
             selectItems.Parameters.AddWithValue("@playerId", playerId);
             var table = await selectItems.ExecuteReaderAsync();
-            List<PlayerItemInfo> items=  new List<PlayerItemInfo>();
+            List<PlayerItemInfo> items = new List<PlayerItemInfo>();
             while (await table.ReadAsync())
             {
                 items.Add(new PlayerItemInfo()
                 {
                     itemId = table.GetInt32(table.GetOrdinal(ITEM_ID)),
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
-                    quantity = table.GetInt32(table.GetOrdinal(QUANTITY))
+                    quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
+                    itemName = table.GetString(table.GetOrdinal(ITEM_NAME))
                 });
             }
             await table.CloseAsync();

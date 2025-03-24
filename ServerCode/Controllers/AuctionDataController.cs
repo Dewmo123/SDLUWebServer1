@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BusinessLayer.Services;
+using Microsoft.AspNetCore.Mvc;
 using Repositories;
 using ServerCode.Models;
 
@@ -8,10 +9,10 @@ namespace ServerCode.Controllers
     [Route("api/auction")]
     public class AuctionDataController : Controller
     {
-        private DBManager _dbManager;
+        private AuctionService auctionService;
         public AuctionDataController(DBManager dbManager)
         {
-            _dbManager = dbManager;
+            auctionService = dbManager.auctionService;
         }
         [HttpPost("post")]
         public async Task<bool> PostItemToAuction(AuctionItemInfo auctionItemInfo)
@@ -19,7 +20,7 @@ namespace ServerCode.Controllers
             string? user = HttpContext.Session.GetString("User");
             if (auctionItemInfo.playerId != user)
                 return false;
-            return await _dbManager.AddItemToAuction(auctionItemInfo);
+            return await auctionService.AddItemToAuction(auctionItemInfo);
         }
         [HttpPost("purchase")]
         public async Task<bool> PurchaseItem(BuyerInfo buyerInfo)
@@ -30,7 +31,7 @@ namespace ServerCode.Controllers
                 Console.WriteLine("not same");
                 return false;
             }
-            return await _dbManager.PurchaseItemInAuction(buyerInfo);
+            return await auctionService.PurchaseItemInAuction(buyerInfo);
         }
         [HttpDelete("cancel")]
         public async Task<bool> CancelItem(string playerId, int itemId, int pricePerUnit)
@@ -38,7 +39,7 @@ namespace ServerCode.Controllers
             string? userId = HttpContext.Session.GetString("User");
             if (userId != playerId)
                 return false;
-            return await _dbManager.CancelAuctionItem(
+            return await auctionService.CancelAuctionItem(
                 new AuctionItemInfo() { playerId = playerId, itemId = itemId, pricePerUnit = pricePerUnit });
         }
         [HttpGet("get-items")]
@@ -48,7 +49,7 @@ namespace ServerCode.Controllers
             Console.WriteLine($"playerId Access: {itemName}");
             if (playerId == null)
                 return NotFound();
-            return await _dbManager.GetAuctionItemByItemName(itemName);
+            return await auctionService.GetAuctionItemByItemName(itemName);
         }
         [HttpGet("get-my-items")]
         public async Task<ActionResult<List<AuctionItemInfo>>?> GetItemsByPlayerName(string playerId)
@@ -56,7 +57,7 @@ namespace ServerCode.Controllers
             string? userId = HttpContext.Session.GetString("User");
             if (playerId == null || playerId != userId)
                 return NotFound();
-            return await _dbManager.GetAuctionnItemByPlayerId(playerId);
+            return await auctionService.GetAuctionnItemByPlayerId(playerId);
         }
     }
 }
