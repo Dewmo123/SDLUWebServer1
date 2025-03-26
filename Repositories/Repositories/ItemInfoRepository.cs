@@ -6,25 +6,20 @@ namespace DataAccessLayer.Repositories
 {
     public interface IItemInfoRepository : IRepository<ItemInfo>
     {
-
+        public Task<List<ItemInfo>> GetItemInfoWithType(ItemType type, MySqlConnection conn);
     }
     public class ItemInfoRepository : IItemInfoRepository
     {
         public async Task<bool> AddAsync(ItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
-            using (MySqlConnection conn = new MySqlConnection())
-            {
-                conn.Open();
-                MySqlCommand command = new MySqlCommand($"INSERT INTO {ITEM_DATA_TABLE} ({ITEM_NAME},{ITEM_TYPE},{ITEM_MAX_STACK}) VALUES (@itemName,@type,@maxStack)", conn);
+                MySqlCommand command = new MySqlCommand($"INSERT INTO {ITEM_DATA_TABLE} ({ITEM_NAME},{ITEM_TYPE},{ITEM_MAX_STACK}) VALUES (@itemName,@type,@maxStack)", connection,transaction);
                 command.Parameters.AddWithValue("@itemName", itemInfo.itemName);
                 command.Parameters.AddWithValue("@type", (int)itemInfo.itemType);
                 command.Parameters.AddWithValue("@maxStack", itemInfo.itemMaxStack);
                 var table = await command.ExecuteNonQueryAsync();
-                conn.Close();
                 if (table != 1)
                     return false;
                 return true;
-            }
         }
 
         public async Task<bool> DeleteWithPrimaryKeysAsync(ItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
@@ -57,6 +52,28 @@ namespace DataAccessLayer.Repositories
         public Task<ItemInfo> GetItemByPrimaryKeysAsync(ItemInfo itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<List<ItemInfo>> GetItemInfoWithType(ItemType type, MySqlConnection conn)
+        {
+            MySqlCommand command = new MySqlCommand(
+                $"SELECT * FROM {ITEM_DATA_TABLE} " +
+                $"WHERE {ITEM_TYPE} = @itemType", conn);
+            command.Parameters.AddWithValue("@itemType", type);
+            var table = await command.ExecuteReaderAsync();
+            List<ItemInfo> items = new List<ItemInfo>();
+            while(await table.ReadAsync())
+            {
+                ItemInfo item = new()
+                {
+                    itemId = table.GetInt32(table.GetOrdinal(ITEM_ID)),
+                    itemType = Enum.Parse<ItemType>(table.GetString(table.GetOrdinal(ITEM_TYPE))),
+                    itemName = table.GetString(table.GetOrdinal(ITEM_NAME))
+                };
+                items.Add(item);
+            }
+            await table.CloseAsync();
+            return items;
         }
 
         public Task<bool> UpdateAsync(ItemInfo entity, MySqlConnection connection, MySqlTransaction transaction)

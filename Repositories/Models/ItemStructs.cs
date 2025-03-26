@@ -7,6 +7,10 @@
         public string itemName;
         public ItemType itemType;
         public int itemMaxStack;
+        public ItemInfo()
+        {
+
+        }
         public ItemInfo(int id,string name, ItemType type,int maxStack)
         {
             itemId = id;

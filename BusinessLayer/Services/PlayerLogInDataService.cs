@@ -6,8 +6,17 @@ namespace BusinessLayer.Services
 {
     public class PlayerLogInDataService : Service
     {
+        private Dictionary<string, int> _defaultDictionary;
         public PlayerLogInDataService(RepositoryManager repo, string dbAddress) : base(repo, dbAddress)
         {
+            _defaultDictionary = new Dictionary<string, int>();
+            SetUpDefaultDictionary();
+        }
+        private async void SetUpDefaultDictionary()
+        {
+            await using MySqlConnection connection = new MySqlConnection(_dbAddress);
+            var items = await _repositoryManager.ItemInfos.GetItemInfoWithType(ItemType.Dictionary, connection);
+            items.ForEach(item => _defaultDictionary.Add(item.itemName, 0));
         }
         public async Task<bool> SignUp(PlayerInfo playerInfo)
         {
@@ -41,7 +50,6 @@ namespace BusinessLayer.Services
         }
         public async Task<bool> LogIn(PlayerInfo playerInfo)
         {
-
             await using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
             await using MySqlTransaction transaction = await conn.BeginTransactionAsync();

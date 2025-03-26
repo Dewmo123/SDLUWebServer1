@@ -12,7 +12,7 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            LogIn(2, null);
+            SignUp(1);
             while (true) { }
         }
         static async void AddItemToPlayer()
@@ -103,7 +103,7 @@ namespace TestClient
         }
         static async void SignUp(int id)
         {
-            string url = "http://localhost:3303/api/player/sign-up";
+            string url = "http://sdludb.duckdns.org:3303/api/player/sign-up";
             PlayerInfo pc = new PlayerInfo { id = $"qwweewq{id}", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");

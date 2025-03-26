@@ -43,6 +43,7 @@
     {
         public string? playerId { get; set; }
         public int gold { get; set; }
+        public string? dictionary { get; set; }
     }
     public record class BuyerInfo
     {

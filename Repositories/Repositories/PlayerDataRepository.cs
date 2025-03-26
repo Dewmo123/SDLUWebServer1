@@ -14,13 +14,14 @@ namespace DataAccessLayer.Repositories
         public async Task<bool> AddAsync(PlayerDataInfo inPlayerGoldInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand addGoldInfo = new MySqlCommand(
-                $"INSERT {PLAYER_DATA_TABLE} ({PLAYER_ID},{GOLD})" +
-                $" VALUES (@playerId,@gold)",
+                $"INSERT {PLAYER_DATA_TABLE} ({PLAYER_ID},{GOLD},{DICTIONARY})" +
+                $" VALUES (@playerId,@gold,@dictionary)",
                 connection,
                 transaction
                 );
             addGoldInfo.Parameters.AddWithValue("@playerId", inPlayerGoldInfo.playerId);
             addGoldInfo.Parameters.AddWithValue("@gold", inPlayerGoldInfo.gold);
+            addGoldInfo.Parameters.AddWithValue("@dictionary", inPlayerGoldInfo.dictionary);
             return await addGoldInfo.ExecuteNonQueryAsync() == 1;
         }
 
@@ -46,7 +47,8 @@ namespace DataAccessLayer.Repositories
                 newInfo = new PlayerDataInfo()
                 {
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
-                    gold = table.GetInt32(table.GetOrdinal(GOLD))
+                    gold = table.GetInt32(table.GetOrdinal(GOLD)),
+                    dictionary = table.GetString(table.GetOrdinal(DICTIONARY))
                 };
             }
             await table.CloseAsync();
@@ -55,10 +57,13 @@ namespace DataAccessLayer.Repositories
 
         public async Task<bool> UpdateAsync(PlayerDataInfo info, MySqlConnection connection, MySqlTransaction transaction)
         {
-            MySqlCommand updateItem = new MySqlCommand($"UPDATE {PLAYER_DATA_TABLE} SET {GOLD} = @gold " +
+            MySqlCommand updateItem = new MySqlCommand(
+                $"UPDATE {PLAYER_DATA_TABLE}" +
+                $" SET {GOLD} = @gold,{DICTIONARY} = @dictionary " +
                 $"WHERE {PLAYER_ID} = @playerId", connection, transaction);
             updateItem.Parameters.AddWithValue("@playerId", info.playerId);
             updateItem.Parameters.AddWithValue("@gold", info.gold);
+            updateItem.Parameters.AddWithValue("@dictionanry", info.dictionary);
             return await updateItem.ExecuteNonQueryAsync() == 1;
         }
         public async Task<bool> ChangeQuantityFromPlayer(PlayerDataInfo dataInfo, MySqlConnection conn, MySqlTransaction transaction)

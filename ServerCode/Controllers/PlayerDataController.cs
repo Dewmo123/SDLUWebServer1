@@ -10,7 +10,7 @@ namespace ServerCode.Controllers
     public class PlayerDataController : Controller
     {
         private readonly PlayerLogInDataService playerDataService;
-        public PlayerDataController(DBManager manager)
+        public PlayerDataController(ServiceManager manager)
         {
             playerDataService = manager.playerLogInDataService;
         }

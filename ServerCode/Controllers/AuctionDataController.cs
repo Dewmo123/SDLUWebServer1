@@ -10,7 +10,7 @@ namespace ServerCode.Controllers
     public class AuctionDataController : Controller
     {
         private AuctionService auctionService;
-        public AuctionDataController(DBManager dbManager)
+        public AuctionDataController(ServiceManager dbManager)
         {
             auctionService = dbManager.auctionService;
         }

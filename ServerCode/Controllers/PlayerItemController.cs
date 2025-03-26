@@ -9,7 +9,7 @@ namespace ServerCode.Controllers
     public class PlayerItemController : Controller
     {
         private PlayerItemService _playerItemService;
-        public PlayerItemController(DBManager dbManager)
+        public PlayerItemController(ServiceManager dbManager)
         {
             _playerItemService = dbManager.playerItemService;
         }
@@ -38,8 +38,10 @@ namespace ServerCode.Controllers
         public async Task<ActionResult<List<PlayerItemInfo>?>> GetItemsByPlayerId()
         {
             string? userId = HttpContext.Session.GetString("User");
+            Console.WriteLine($"Get MyItems Request");
             if (userId == null)
                 return NotFound();
+            Console.WriteLine($"Get Player Items: {userId}");
             return await _playerItemService.GetItemsByPlayerId(userId);
         }
     }

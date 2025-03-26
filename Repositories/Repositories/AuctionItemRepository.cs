@@ -21,7 +21,7 @@ namespace DataAccessLayer.Repositories
             addNewItem.Parameters.AddWithValue("@itemId", auctionItemInfo.itemId);
             addNewItem.Parameters.AddWithValue("@pricePerUnit", auctionItemInfo.pricePerUnit);
             addNewItem.Parameters.AddWithValue("@quantity", auctionItemInfo.quantity);
-            addNewItem.Parameters.AddWithValue("@itemName", auctionItemInfo.itemName);
+            addNewItem.Parameters.AddWithValue("@itemName", auctionItemInfo.itemName)   ;
             return await addNewItem.ExecuteNonQueryAsync() > 0;
         }
 

@@ -6,7 +6,7 @@ using static Repositories.DBConfig;
 namespace Repositories
 {
 
-    public class DBManager
+    public class ServiceManager
     {
         string _dbAddress;
         private RepositoryManager _repositoryManager;
@@ -15,7 +15,7 @@ namespace Repositories
         private ItemInfoService _itemInfoService;
         private PlayerItemService _playerItemService;
         private PlayerLogInDataService _playerLogInDataService;
-        public DBManager(string connectionAddress)
+        public ServiceManager(string connectionAddress)
         {
             _dbAddress = connectionAddress;
             _repositoryManager = new RepositoryManager(connectionAddress);

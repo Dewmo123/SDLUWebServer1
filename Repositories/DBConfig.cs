@@ -1,11 +1,13 @@
-﻿namespace Repositories
+﻿using System.Collections.Generic;
+
+namespace Repositories
 {
     public static class DBConfig
     {
         #region playerData
 
         /// <summary>
-        /// 플레이어 데이터 테이블의 이름입니다. 플레이어 데이터 테이블은 playerid와 password를 속성으로 가집니다(varchar)
+        /// 플레이어 로그인 데이터 테이블의 이름입니다. 플레이어 로그인 데이터 테이블은 playerid와 password를 속성으로 가집니다(varchar)
         /// </summary>
         public const string PLAYER_LOGIN_DATA_TABLE = "player_login_data";
         public const string PLAYER_ID = "player_id";
@@ -20,6 +22,7 @@
         /// </summary>
         public const string PLAYER_DATA_TABLE = "player_data";
         public const string GOLD = "gold";
+        public const string DICTIONARY = "dictionary";
         #endregion
 
         #region ItemData
