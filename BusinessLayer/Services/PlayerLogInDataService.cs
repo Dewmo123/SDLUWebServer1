@@ -1,22 +1,23 @@
 ﻿using MySqlConnector;
 using Repositories;
 using ServerCode.Models;
-
+using Newtonsoft.Json;
 namespace BusinessLayer.Services
 {
     public class PlayerLogInDataService : Service
     {
-        private Dictionary<string, int> _defaultDictionary;
+
         public PlayerLogInDataService(RepositoryManager repo, string dbAddress) : base(repo, dbAddress)
         {
-            _defaultDictionary = new Dictionary<string, int>();
-            SetUpDefaultDictionary();
         }
-        private async void SetUpDefaultDictionary()
+        private async Task<string> SetUpDefaultDictionary()
         {
             await using MySqlConnection connection = new MySqlConnection(_dbAddress);
-            var items = await _repositoryManager.ItemInfos.GetItemInfoWithType(ItemType.Dictionary, connection);
-            items.ForEach(item => _defaultDictionary.Add(item.itemName, 0));
+            await connection.OpenAsync();
+            var items = await _repositoryManager.ItemInfos.GetItemInfoWithType(ItemType.dictionary, connection);
+            string json = JsonConvert.SerializeObject(items.ToDictionary(key => key, val => val), Formatting.Indented);
+            await connection.CloseAsync();
+            return json;
         }
         public async Task<bool> SignUp(PlayerInfo playerInfo)
         {
@@ -25,25 +26,28 @@ namespace BusinessLayer.Services
             await using MySqlTransaction transaction = await conn.BeginTransactionAsync();
             try
             {
-                var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
+                var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn);
                 if (info.id == playerInfo.id)
                 {
                     Console.WriteLine($"{info.id}:Duplicate");
                     return false;
                 }
                 bool success = await _repositoryManager.PlayerInfos.AddAsync(playerInfo, conn, transaction);
-                success &= await _repositoryManager.PlayerData.AddAsync(new PlayerDataInfo() { playerId = playerInfo.id, gold = 0 }, conn, transaction);
+                string json = await SetUpDefaultDictionary();
+                success &= await _repositoryManager.PlayerData.AddAsync(new PlayerDataInfo() { playerId = playerInfo.id, gold = 0, dictionary = json }, conn, transaction);
                 await transaction.CommitAsync();
                 Console.WriteLine(success);
                 return success;
             }
             catch (MySqlException)
             {
+                Console.WriteLine("Rollbakcc");
                 await transaction.RollbackAsync();
                 return false;
             }
             catch (InvalidOperationException)
             {
+                Console.WriteLine("Rollback");
                 await transaction.RollbackAsync();
                 return false;
             }
@@ -52,18 +56,23 @@ namespace BusinessLayer.Services
         {
             await using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
-            await using MySqlTransaction transaction = await conn.BeginTransactionAsync();
             try
             {
-                var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
-                await transaction.CommitAsync();
+                var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn);
                 return info.password == playerInfo.password;
             }
             catch (MySqlException)
             {
-                await transaction.RollbackAsync();
                 return false;
             }
+        }
+        public async Task<PlayerDataInfo> GetPlayerData(string playerId)
+        {
+            await using MySqlConnection connection = new MySqlConnection(_dbAddress);
+            await connection.OpenAsync();
+
+            PlayerDataInfo myInfo = new PlayerDataInfo() { playerId = playerId };
+            return await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(myInfo, connection);
         }
     }
 }

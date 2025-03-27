@@ -16,43 +16,46 @@ namespace DataAccessLayer.Repositories
     {
         public async Task<bool> AddAsync(AuctionItemInfo auctionItemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
-            MySqlCommand addNewItem = new MySqlCommand(Queries.AddNewItemToAuction, connection, transaction);
+            MySqlCommand addNewItem = new MySqlCommand(
+                $"INSERT INTO {AUCTION_DATA_TABLE} ({PLAYER_ID},{PRICE_PER_UNIT},{QUANTITY},{ITEM_NAME})" +
+                $" VALUES (@playerId,@pricePerUnit,@quantity,@itemName)", connection, transaction);
             addNewItem.Parameters.AddWithValue("@playerId", auctionItemInfo.playerId);
-            addNewItem.Parameters.AddWithValue("@itemId", auctionItemInfo.itemId);
             addNewItem.Parameters.AddWithValue("@pricePerUnit", auctionItemInfo.pricePerUnit);
             addNewItem.Parameters.AddWithValue("@quantity", auctionItemInfo.quantity);
-            addNewItem.Parameters.AddWithValue("@itemName", auctionItemInfo.itemName)   ;
+            addNewItem.Parameters.AddWithValue("@itemName", auctionItemInfo.itemName);
             return await addNewItem.ExecuteNonQueryAsync() > 0;
         }
 
         public async Task<bool> DeleteWithPrimaryKeysAsync(AuctionItemInfo entity, MySqlConnection connection, MySqlTransaction transaction)
         {
-            MySqlCommand deleteAuctionItem = new MySqlCommand($"DELETE FROM {AUCTION_DATA_TABLE}" +
-                $" WHERE {PLAYER_ID} = @playerId AND {PRICE_PER_UNIT} = @pricePerUnit AND {ITEM_ID} = @itemId", connection, transaction);
+            MySqlCommand deleteAuctionItem = new MySqlCommand(
+                $"DELETE FROM {AUCTION_DATA_TABLE}" +
+                $" WHERE {PLAYER_ID} = @playerId AND {PRICE_PER_UNIT} = @pricePerUnit AND {ITEM_NAME} = @itemName", connection, transaction);
             deleteAuctionItem.Parameters.AddWithValue("@playerId", entity.playerId);
             deleteAuctionItem.Parameters.AddWithValue("@pricePerUnit", entity.pricePerUnit);
-            deleteAuctionItem.Parameters.AddWithValue("@itemId", entity.itemId);
+            deleteAuctionItem.Parameters.AddWithValue("@itemName", entity.itemName);
             return await deleteAuctionItem.ExecuteNonQueryAsync() == 1;
         }
 
-        public async Task<List<AuctionItemInfo>> GetAllItemsAsync(MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<List<AuctionItemInfo>> GetAllItemsAsync(MySqlConnection connection)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<AuctionItemInfo> GetItemByPrimaryKeysAsync(AuctionItemInfo auctionItem, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<AuctionItemInfo> GetItemByPrimaryKeysAsync(AuctionItemInfo auctionItem, MySqlConnection connection)
         {
-            MySqlCommand getAuctionItem = new MySqlCommand(Queries.GetAuctionItemById, connection, transaction);
+            MySqlCommand getAuctionItem = new MySqlCommand(
+                $"SELECT * FROM {AUCTION_DATA_TABLE}" +
+                $" WHERE {PLAYER_ID} = @playerId AND {ITEM_NAME} = @itemName AND {PRICE_PER_UNIT} = @pricePerUnit", connection);
             getAuctionItem.Parameters.AddWithValue("@playerId", auctionItem.playerId);
-            getAuctionItem.Parameters.AddWithValue("@itemId", auctionItem.itemId);
             getAuctionItem.Parameters.AddWithValue("@pricePerUnit", auctionItem.pricePerUnit);
+            getAuctionItem.Parameters.AddWithValue("@itemName", auctionItem.itemName);
             var table = await getAuctionItem.ExecuteReaderAsync();
             AuctionItemInfo? info = null;
             if (await table.ReadAsync())
             {
                 info = new AuctionItemInfo()
                 {
-                    itemId = table.GetInt32(table.GetOrdinal(ITEM_ID)),
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
                     pricePerUnit = table.GetInt32(table.GetOrdinal(PRICE_PER_UNIT)),
                     quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
@@ -67,10 +70,10 @@ namespace DataAccessLayer.Repositories
         {
             MySqlCommand addQuantity = new MySqlCommand(
                 $"UPDATE {AUCTION_DATA_TABLE} SET {QUANTITY} = @quantity " +
-                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_ID} = @itemId AND {PRICE_PER_UNIT} = @pricePerUnit", connection, transaction);
+                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_NAME} = @itemName AND {PRICE_PER_UNIT} = @pricePerUnit", connection, transaction);
             addQuantity.Parameters.AddWithValue("@quantity", auctionItemInfo.quantity);
             addQuantity.Parameters.AddWithValue("@playerId", auctionItemInfo.playerId);
-            addQuantity.Parameters.AddWithValue("@itemId", auctionItemInfo.itemId);
+            addQuantity.Parameters.AddWithValue("@itemName", auctionItemInfo.itemName);
             addQuantity.Parameters.AddWithValue("@pricePerUnit", auctionItemInfo.pricePerUnit);
             return await addQuantity.ExecuteNonQueryAsync() > 0;
         }
@@ -84,7 +87,6 @@ namespace DataAccessLayer.Repositories
             {
                 items.Add(new AuctionItemInfo()
                 {
-                    itemId = table.GetInt32(table.GetOrdinal(ITEM_ID)),
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
                     quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
                     pricePerUnit = table.GetInt32(table.GetOrdinal(PRICE_PER_UNIT)),
@@ -105,7 +107,6 @@ namespace DataAccessLayer.Repositories
             {
                 items.Add(new AuctionItemInfo()
                 {
-                    itemId = table.GetInt32(table.GetOrdinal(ITEM_ID)),
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
                     quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
                     pricePerUnit = table.GetInt32(table.GetOrdinal(PRICE_PER_UNIT)),

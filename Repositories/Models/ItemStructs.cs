@@ -3,20 +3,16 @@
     //Table과 동일
     public class ItemInfo
     {
-        public int itemId;
         public string itemName;
         public ItemType itemType;
-        public int itemMaxStack;
         public ItemInfo()
         {
 
         }
-        public ItemInfo(int id,string name, ItemType type,int maxStack)
+        public ItemInfo(string name, ItemType type )
         {
-            itemId = id;
             itemName = name;
             itemType = type;
-            itemMaxStack = maxStack;
         }
     }
     public class ItemInfos

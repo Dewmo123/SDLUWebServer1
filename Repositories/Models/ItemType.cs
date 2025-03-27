@@ -2,7 +2,7 @@
 {
     public enum ItemType
     {
-        Dictionary = 1,
-        Material = 2
+        dictionary = 1,
+        material = 2
     }
 }

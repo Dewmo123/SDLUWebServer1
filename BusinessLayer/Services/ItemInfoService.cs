@@ -29,7 +29,7 @@ namespace BusinessLayer.Services
 
 
         }
-        public bool RemoveItemInfo(int itemId)
+        public bool RemoveItemInfo(string itemName)
         {
             return true;
         }

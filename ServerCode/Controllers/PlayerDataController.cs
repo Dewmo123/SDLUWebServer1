@@ -35,13 +35,14 @@ namespace ServerCode.Controllers
             Console.WriteLine($"LogIn {info.id} : Failed");
             return false;
         }
-        [HttpGet("userinfo")]
-        public string GetUserInfo()
+        [HttpGet("get-my-data")]
+        public async Task<ActionResult<PlayerDataInfo>> GetMyData()
         {
-            string? name = HttpContext.Session.GetString("User");
-            if (name == null)
-                return "Please Login";
-            return name;
+            string? playerId = HttpContext.Session.GetString("User");
+
+            if (playerId == null)
+                return NotFound();
+            return await playerDataService.GetPlayerData(playerId);
         }
     }
 }

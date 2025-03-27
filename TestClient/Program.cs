@@ -12,7 +12,7 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            SignUp(1);
+            LogIn(5,GetUserInfo);
             while (true) { }
         }
         static async void AddItemToPlayer()
@@ -20,7 +20,7 @@ namespace TestClient
             string url = "http://localhost:3303/api/update-item";
             PlayerItemInfo itemInfo = new PlayerItemInfo()
             {
-                itemId = 1,
+                itemName = "sword",
                 playerId = "qwweewq2",
                 quantity = 100
             };
@@ -36,7 +36,7 @@ namespace TestClient
             string url = "http://localhost:3303/api/auction/post";
             var itemInfo = new AuctionItemInfo()
             {
-                itemId = 1,
+                itemName = "sword",
                 playerId = "qwweewq2",
                 pricePerUnit = 5,
                 quantity = 20
@@ -52,7 +52,7 @@ namespace TestClient
             string url = "http://localhost:3303/api/auction/cancel?playerId=qwweewq2&itemId=1&pricePerUnit=5&quantity=3";
             var itemInfo = new AuctionItemInfo()
             {
-                itemId = 1,
+                itemName = "sword",
                 playerId = "qwweewq2",
                 pricePerUnit = 5,
             };
@@ -71,7 +71,7 @@ namespace TestClient
                 buyerId = "qwweewq1",
                 itemInfo = new AuctionItemInfo()
                 {
-                    itemId = 1,
+                    itemName = "sword",
                     playerId = "qwweewq2",
                     pricePerUnit = 5,
                     quantity = 10
@@ -85,21 +85,24 @@ namespace TestClient
         }
         static async void LogIn(int id, Action callback)
         {
-            string url = "http://172.31.1.229:3303/api/player/log-in";
-            PlayerInfo pc = new PlayerInfo { id = $"qwer", password = "1234" };
+            string url = "http://localhost:3303/api/player/log-in";
+            PlayerInfo pc = new PlayerInfo { id = $"qwweewq{id}", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             Console.WriteLine("LogIN");
             HttpResponseMessage msg = await client.PostAsync(url, content);
             string result = await msg.Content.ReadAsStringAsync();
-            Console.WriteLine(result);
+            Console.WriteLine($"{result}");
+            callback();
         }
-        static async Task GetUserInfo()
+        static async void GetUserInfo()
         {
-            string url = "http://172.31.0.250:3303/api/userinfo";
+            string url = "http://localhost:3303/api/player/get-my-data";
             HttpResponseMessage msg = await client.GetAsync(url);
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
+            PlayerDataInfo? info = JsonConvert.DeserializeObject<PlayerDataInfo>(result);
+
         }
         static async void SignUp(int id)
         {

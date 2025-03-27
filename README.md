@@ -8,28 +8,27 @@ create table player_login_data(
     password varchar(20)
 );
 create table item_data(
-	item_id int primary key auto_increment,
     item_name varchar(50) not null,
-    item_type enum('weapon','armor','consumption','material'),
-    max_stack int default 1
+    item_type enum('dictionary','material'),
+    max_stack int default 1,
+    primary key (item_name)
 );
 create table player_item_data(
 	player_id varchar(8),
-    item_id int,
     item_name varchar(50),
     quantity int default 1,
-    primary key (player_id,item_id),
+    primary key (player_id,item_name),
     foreign key (player_id) references player_login_data(player_id) on delete cascade,
-    foreign key(item_id) references item_data(item_id) on delete cascade
+    foreign key(item_name) references item_data(item_name) on delete cascade
 );
 create table auction(
 	player_id varchar(8),
-    item_id int,
     quantity int default 1,
     price_per_unit int default 1,
-    primary key (player_id,item_id,price_per_unit),
+    item_name varchar(50),
+    primary key (player_id,item_name,price_per_unit),
     foreign key(player_id) references player_login_data(player_id) on delete cascade,
-    foreign key(item_id) references item_data(item_id) on delete cascade
+    foreign key(item_name) references item_data(item_name) on delete cascade
 );
 create table player_data(
 	player_id varchar(8),

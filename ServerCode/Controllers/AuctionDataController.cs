@@ -14,7 +14,7 @@ namespace ServerCode.Controllers
         {
             auctionService = dbManager.auctionService;
         }
-        [HttpPost("post")]
+        [HttpPost("post-item")]
         public async Task<bool> PostItemToAuction(AuctionItemInfo auctionItemInfo)
         {
             string? user = HttpContext.Session.GetString("User");
@@ -34,13 +34,13 @@ namespace ServerCode.Controllers
             return await auctionService.PurchaseItemInAuction(buyerInfo);
         }
         [HttpDelete("cancel")]
-        public async Task<bool> CancelItem(string playerId, int itemId, int pricePerUnit)
+        public async Task<bool> CancelItem(string playerId, string itemName, int pricePerUnit)
         {
             string? userId = HttpContext.Session.GetString("User");
             if (userId != playerId)
                 return false;
             return await auctionService.CancelAuctionItem(
-                new AuctionItemInfo() { playerId = playerId, itemId = itemId, pricePerUnit = pricePerUnit });
+                new AuctionItemInfo() { playerId = playerId, itemName = itemName, pricePerUnit = pricePerUnit });
         }
         [HttpGet("get-items")]
         public async Task<ActionResult<List<AuctionItemInfo>>?> GetItemsByItemName(string itemName)

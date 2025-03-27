@@ -30,29 +30,26 @@ namespace DataAccessLayer.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<List<PlayerDataInfo>> GetAllItemsAsync(MySqlConnection connection, MySqlTransaction transaction)
+        public Task<List<PlayerDataInfo>> GetAllItemsAsync(MySqlConnection connection)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<PlayerDataInfo> GetItemByPrimaryKeysAsync(PlayerDataInfo inPlayerGoldInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<PlayerDataInfo> GetItemByPrimaryKeysAsync(PlayerDataInfo inPlayerGoldInfo, MySqlConnection connection)
         {
-            MySqlCommand getItem = new MySqlCommand($"SELECT * FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = @playerId", connection, transaction);
+            MySqlCommand getItem = new MySqlCommand($"SELECT * FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = @playerId", connection);
             getItem.Parameters.AddWithValue("@playerId", inPlayerGoldInfo.playerId);
             var table = await getItem.ExecuteReaderAsync();
 
-            PlayerDataInfo? newInfo = null;
             if (await table.ReadAsync())
             {
-                newInfo = new PlayerDataInfo()
-                {
-                    playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
-                    gold = table.GetInt32(table.GetOrdinal(GOLD)),
-                    dictionary = table.GetString(table.GetOrdinal(DICTIONARY))
-                };
+                inPlayerGoldInfo.dictionary = table.GetString(table.GetOrdinal(DICTIONARY));
+                inPlayerGoldInfo.gold = table.GetInt32(table.GetOrdinal(GOLD));
             }
+            
             await table.CloseAsync();
-            return newInfo;
+
+            return inPlayerGoldInfo;
         }
 
         public async Task<bool> UpdateAsync(PlayerDataInfo info, MySqlConnection connection, MySqlTransaction transaction)
@@ -63,12 +60,12 @@ namespace DataAccessLayer.Repositories
                 $"WHERE {PLAYER_ID} = @playerId", connection, transaction);
             updateItem.Parameters.AddWithValue("@playerId", info.playerId);
             updateItem.Parameters.AddWithValue("@gold", info.gold);
-            updateItem.Parameters.AddWithValue("@dictionanry", info.dictionary);
+            updateItem.Parameters.AddWithValue("@dictionary", info.dictionary);
             return await updateItem.ExecuteNonQueryAsync() == 1;
         }
         public async Task<bool> ChangeQuantityFromPlayer(PlayerDataInfo dataInfo, MySqlConnection conn, MySqlTransaction transaction)
         {
-            var info = await GetItemByPrimaryKeysAsync(dataInfo, conn, transaction);
+            var info = await GetItemByPrimaryKeysAsync(dataInfo, conn);
 
             int gold = dataInfo.gold + info.gold;
             if (gold < 0)

@@ -27,16 +27,16 @@ namespace DataAccessLayer.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<List<PlayerInfo>> GetAllItemsAsync(MySqlConnection connection, MySqlTransaction transaction)
+        public Task<List<PlayerInfo>> GetAllItemsAsync(MySqlConnection connection)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<PlayerInfo> GetItemByPrimaryKeysAsync(PlayerInfo playerInfo, MySqlConnection connection, MySqlTransaction transaction)//정보만 가지고 오고 로그인은 DBManager에서 구현
+        public async Task<PlayerInfo> GetItemByPrimaryKeysAsync(PlayerInfo playerInfo, MySqlConnection connection)//정보만 가지고 오고 로그인은 DBManager에서 구현
         {
             MySqlCommand command = new MySqlCommand(
                 $"SELECT * FROM {PLAYER_LOGIN_DATA_TABLE}" +
-                $" WHERE {PLAYER_ID} = @playerId", connection, transaction);
+                $" WHERE {PLAYER_ID} = @playerId", connection);
             command.Parameters.AddWithValue("@playerId", playerInfo.id);
             var table = await command.ExecuteReaderAsync();
             PlayerInfo info = new PlayerInfo();

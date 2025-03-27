@@ -8,7 +8,6 @@
     public record class AuctionItemInfo
     {
         public string playerId { get; set; } = null!;
-        public int itemId { get; set; }
         public int pricePerUnit { get; set; }
         public int quantity { get; set; }
         public string? itemName { get; set; }
@@ -17,7 +16,6 @@
     public record class PlayerItemInfo
     {
         public string playerId { get; set; } = null!;
-        public int itemId { get; set; }
         public int quantity { get; set; }
         public string? itemName { get; set; }
         public PlayerItemInfo()
@@ -28,14 +26,12 @@
         public PlayerItemInfo(AuctionItemInfo auction)
         {
             playerId = auction.playerId;
-            itemId = auction.itemId;
             quantity = auction.quantity;
             itemName = auction.itemName;
         }
-        public PlayerItemInfo(string pId, int iId, int q)
+        public PlayerItemInfo(string pId, int q)
         {
             playerId = pId;
-            itemId = iId;
             quantity = q;
         }
     }

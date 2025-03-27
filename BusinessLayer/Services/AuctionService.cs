@@ -17,10 +17,10 @@ namespace BusinessLayer.Services
             using var transaction = await conn.BeginTransactionAsync();
             try
             {
-                var playerItemInfo = new PlayerItemInfo() { playerId = auctionItemInfo.playerId, itemId = auctionItemInfo.itemId, quantity = 0 };
+                var playerItemInfo = new PlayerItemInfo() { playerId = auctionItemInfo.playerId, itemName = auctionItemInfo.itemName, quantity = 0 };
 
-                playerItemInfo = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(playerItemInfo, conn, transaction);
-                var remainItemInfo = await _repositoryManager.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn, transaction);
+                playerItemInfo = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(playerItemInfo, conn);
+                var remainItemInfo = await _repositoryManager.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn);
 
                 if (playerItemInfo == null)
                     return false;
@@ -28,7 +28,9 @@ namespace BusinessLayer.Services
                 int remainQuantity = playerItemInfo.quantity - auctionItemInfo.quantity;
                 if (remainQuantity < 0)
                     return false;
-                bool success = await _repositoryManager.PlayerItems.UpdateAsync(new PlayerItemInfo() { playerId = auctionItemInfo.playerId, itemId = auctionItemInfo.itemId, quantity = remainQuantity }, conn, transaction);
+                bool success = await _repositoryManager.PlayerItems.UpdateAsync(
+                    new PlayerItemInfo() { playerId = auctionItemInfo.playerId, itemName = auctionItemInfo.itemName, quantity = remainQuantity }
+                    , conn, transaction);
                 Console.WriteLine("Update" + success);
 
                 if (remainItemInfo == null && auctionItemInfo.quantity > 0)
@@ -44,7 +46,7 @@ namespace BusinessLayer.Services
                     return false;
                 AuctionItemInfo newItemInfo = new()
                 {
-                    itemId = remainItemInfo.itemId,
+                    itemName = remainItemInfo.itemName,
                     playerId = remainItemInfo.playerId,
                     quantity = quantity,
                     pricePerUnit = remainItemInfo.pricePerUnit
@@ -70,11 +72,11 @@ namespace BusinessLayer.Services
             try
             {
                 PlayerDataInfo playerInfo = new() { playerId = buyerInfo.buyerId, gold = 0 };
-                playerInfo = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(playerInfo, conn, transaction);
+                playerInfo = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(playerInfo, conn);
 
                 AuctionItemInfo? auctionItem = buyerInfo.itemInfo;
-                auctionItem = await _repositoryManager.AuctionItems.GetItemByPrimaryKeysAsync(auctionItem, conn, transaction);
-                Console.WriteLine($"auctionItemId: " + auctionItem.itemId);
+                auctionItem = await _repositoryManager.AuctionItems.GetItemByPrimaryKeysAsync(auctionItem, conn);
+                Console.WriteLine($"auctionItemName: " + auctionItem.itemName);
                 if (playerInfo == null || auctionItem == null)
                     return false;
 
@@ -89,7 +91,7 @@ namespace BusinessLayer.Services
                 Console.WriteLine(auctionItem.quantity);
 
                 PlayerDataInfo sellerInfo = new() { playerId = auctionItem.playerId, gold = 0 };
-                sellerInfo = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(sellerInfo, conn, transaction);
+                sellerInfo = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(sellerInfo, conn);
                 sellerInfo.gold += buyerInfo.NeededMoney;
 
                 success &= await _repositoryManager.PlayerData.UpdateAsync(sellerInfo, conn, transaction);
@@ -99,7 +101,7 @@ namespace BusinessLayer.Services
                 else
                     success &= await _repositoryManager.AuctionItems.UpdateAsync(auctionItem, conn, transaction);
 
-                PlayerItemInfo itemInfo = new() { itemId = auctionItem.itemId, playerId = playerInfo.playerId, quantity = buyerInfo.buyCount };
+                PlayerItemInfo itemInfo = new() { itemName = auctionItem.itemName, playerId = playerInfo.playerId, quantity = buyerInfo.buyCount };
                 success &= await _repositoryManager.PlayerItems.CheckConditionAndChangePlayerItem(itemInfo, conn, transaction);
                 if (success)
                     await transaction.CommitAsync();
