@@ -13,10 +13,11 @@ namespace BusinessLayer.Services
         {
             await using var conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
+            var info = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn);
             using var transaction = await conn.BeginTransactionAsync();
             try
             {
-                return await _repositoryManager.PlayerItems.CheckConditionAndChangePlayerItem(itemInfo, conn, transaction);
+                return await _repositoryManager.PlayerItems.CheckConditionAndChangePlayerItem(itemInfo, info, conn, transaction);
             }
             catch (Exception)
             {

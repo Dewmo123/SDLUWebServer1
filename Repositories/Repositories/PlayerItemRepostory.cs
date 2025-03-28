@@ -7,7 +7,7 @@ namespace DataAccessLayer.Repositories
 {
     public interface IPlayerItemRepository : IRepository<PlayerItemInfo>
     {
-        public Task<bool> CheckConditionAndChangePlayerItem(PlayerItemInfo itemInfo, MySqlConnection conn, MySqlTransaction transaction);
+        public Task<bool> CheckConditionAndChangePlayerItem(PlayerItemInfo itemInfo,PlayerItemInfo remainItem, MySqlConnection conn, MySqlTransaction transaction);
         public Task<List<PlayerItemInfo>> GetItemsByPlayerId(string playerId, MySqlConnection connection);
     }
     public class PlayerItemRepostory : IPlayerItemRepository
@@ -78,20 +78,16 @@ namespace DataAccessLayer.Repositories
 
             return await cmd.ExecuteNonQueryAsync() > 0;
         }
-        public async Task<bool> CheckConditionAndChangePlayerItem(PlayerItemInfo itemInfo, MySqlConnection conn, MySqlTransaction transaction)
+        public async Task<bool> CheckConditionAndChangePlayerItem(PlayerItemInfo itemInfo,PlayerItemInfo remainItem, MySqlConnection conn, MySqlTransaction transaction)
         {
-            var info = await GetItemByPrimaryKeysAsync(itemInfo, conn);
-            if (info == null && itemInfo.quantity > 0)
-            {
-                Console.WriteLine(itemInfo.itemName);
+            if (remainItem == null && itemInfo.quantity > 0)
                 return await AddAsync(itemInfo, conn, transaction);
-            }
 
-            int quantity = info.quantity + itemInfo.quantity;
+            int quantity = remainItem.quantity + itemInfo.quantity;
             if (quantity < 0)
                 return false;
-            info.quantity = quantity;
-            return await UpdateAsync(info, conn, transaction);
+            remainItem.quantity = quantity;
+            return await UpdateAsync(remainItem, conn, transaction);
         }
 
         public async Task<List<PlayerItemInfo>> GetItemsByPlayerId(string playerId, MySqlConnection connection)

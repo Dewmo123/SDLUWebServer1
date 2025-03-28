@@ -23,10 +23,10 @@ namespace BusinessLayer.Services
         {
             await using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
+            var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn);
             await using MySqlTransaction transaction = await conn.BeginTransactionAsync();
             try
             {
-                var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn);
                 if (info.id == playerInfo.id)
                 {
                     Console.WriteLine($"{info.id}:Duplicate");
@@ -45,9 +45,9 @@ namespace BusinessLayer.Services
                 await transaction.RollbackAsync();
                 return false;
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
-                Console.WriteLine("Rollback");
+                Console.WriteLine(ex);
                 await transaction.RollbackAsync();
                 return false;
             }
