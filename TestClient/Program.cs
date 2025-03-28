@@ -12,7 +12,7 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            LogIn(5,GetUserInfo);
+            LogIn(5,CancelAuctionItem);
             while (true) { }
         }
         static async void AddItemToPlayer()
@@ -31,13 +31,20 @@ namespace TestClient
             Console.WriteLine(result);
 
         }
+        static async void CancelAuctionItem()
+        {
+            string url = "http://localhost:3303/api/auction/cancel?itemName=mantis&pricePerUnit=5";
+            HttpResponseMessage msg = await client.DeleteAsync(url);
+            string result = await msg.Content.ReadAsStringAsync();
+            Console.WriteLine(result);
+        }
         static async void AddItemToAuction()
         {
             string url = "http://localhost:3303/api/auction/post";
             var itemInfo = new AuctionItemInfo()
             {
-                itemName = "sword",
-                playerId = "qwweewq2",
+                itemName = "mantis",
+                playerId = "qwer",
                 pricePerUnit = 5,
                 quantity = 20
             };
@@ -86,7 +93,7 @@ namespace TestClient
         static async void LogIn(int id, Action callback)
         {
             string url = "http://localhost:3303/api/player/log-in";
-            PlayerInfo pc = new PlayerInfo { id = $"qwweewq{id}", password = "qqwweedd" };
+            PlayerInfo pc = new PlayerInfo { id = $"qwer", password = "1234" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             Console.WriteLine("LogIN");

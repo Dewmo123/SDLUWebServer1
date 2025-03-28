@@ -80,6 +80,8 @@ namespace DataAccessLayer.Repositories
         }
         public async Task<bool> CheckConditionAndChangePlayerItem(PlayerItemInfo itemInfo,PlayerItemInfo remainItem, MySqlConnection conn, MySqlTransaction transaction)
         {
+            Console.WriteLine(remainItem.quantity);
+            Console.WriteLine(itemInfo.quantity);
             if (remainItem == null && itemInfo.quantity > 0)
                 return await AddAsync(itemInfo, conn, transaction);
 

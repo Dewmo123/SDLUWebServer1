@@ -134,6 +134,12 @@ namespace BusinessLayer.Services
         {
             await using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
+            auctionItemInfo = await _repositoryManager.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn);
+            if (auctionItemInfo == null)
+            {
+                await conn.CloseAsync();
+                return false;
+            }
             PlayerItemInfo playerItemInfo = new(auctionItemInfo);
             PlayerItemInfo remainItem = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(playerItemInfo, conn);
             using MySqlTransaction transaction = await conn.BeginTransactionAsync();

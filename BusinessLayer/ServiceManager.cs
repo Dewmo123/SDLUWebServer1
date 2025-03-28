@@ -11,10 +11,10 @@ namespace Repositories
         string _dbAddress;
         private RepositoryManager _repositoryManager;
 
-        private AuctionService _auctionService;
-        private ItemInfoService _itemInfoService;
-        private PlayerItemService _playerItemService;
-        private PlayerLogInDataService _playerLogInDataService;
+        private AuctionService? _auctionService;
+        private ItemInfoService? _itemInfoService;
+        private PlayerItemService? _playerItemService;
+        private PlayerLogInDataService? _playerLogInDataService;
         public ServiceManager(string connectionAddress)
         {
             _dbAddress = connectionAddress;

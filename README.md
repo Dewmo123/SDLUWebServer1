@@ -10,7 +10,6 @@ create table player_login_data(
 create table item_data(
     item_name varchar(50) not null,
     item_type enum('dictionary','material'),
-    max_stack int default 1,
     primary key (item_name)
 );
 create table player_item_data(
