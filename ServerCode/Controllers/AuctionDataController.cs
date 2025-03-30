@@ -53,12 +53,12 @@ namespace ServerCode.Controllers
             return await auctionService.GetAuctionItemByItemName(itemName);
         }
         [HttpGet("get-my-items")]
-        public async Task<ActionResult<List<AuctionItemInfo>>?> GetItemsByPlayerName(string playerId)
+        public async Task<ActionResult<List<AuctionItemInfo>>?> GetItemsByPlayerName()
         {
             string? userId = HttpContext.Session.GetString("User");
-            if (playerId == null || playerId != userId)
+            if (userId == null)
                 return NotFound();
-            return await auctionService.GetAuctionnItemByPlayerId(playerId);
+            return await auctionService.GetAuctionnItemByPlayerId(userId);
         }
     }
 }

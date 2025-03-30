@@ -46,14 +46,9 @@ namespace BusinessLayer.Services
                 int quantity = remainItemInfo.quantity + auctionItemInfo.quantity;
                 if (quantity < 0)
                     return false;
-                AuctionItemInfo newItemInfo = new()
-                {
-                    itemName = remainItemInfo.itemName,
-                    playerId = remainItemInfo.playerId,
-                    quantity = quantity,
-                    pricePerUnit = remainItemInfo.pricePerUnit
-                };
-                success &= await _repositoryManager.AuctionItems.UpdateAsync(newItemInfo, conn, transaction);
+                remainItemInfo.quantity = quantity;
+                
+                success &= await _repositoryManager.AuctionItems.UpdateAsync(remainItemInfo, conn, transaction);
                 Console.WriteLine("Auction Update: " + success);
                 if (success) await transaction.CommitAsync();
                 else await transaction.RollbackAsync();
