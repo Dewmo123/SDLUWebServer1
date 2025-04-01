@@ -15,11 +15,13 @@ namespace ServerCode.Controllers
             auctionService = dbManager.auctionService;
         }
         [HttpPost("post")]
-        public async Task<bool> PostItemToAuction(AuctionItemInfo auctionItemInfo)
+        public async Task<bool> PostItemToAuction([FromBody]AuctionItemInfo auctionItemInfo)
         {
             string? user = HttpContext.Session.GetString("User");
-            if (auctionItemInfo.playerId != user)
+            if (user == null)
                 return false;
+            auctionItemInfo.playerId = user;
+            Console.WriteLine($"{user} PostItemToAuction: {auctionItemInfo.itemName}");
             return await auctionService.AddItemToAuction(auctionItemInfo);
         }
         [HttpPost("purchase")]
