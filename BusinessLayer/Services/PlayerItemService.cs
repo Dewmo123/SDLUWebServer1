@@ -14,7 +14,7 @@ namespace BusinessLayer.Services
             await using var conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
             var info = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn);
-            using var transaction = await conn.BeginTransactionAsync();
+            await using var transaction = await conn.BeginTransactionAsync();
             try
             {
                 return await _repositoryManager.PlayerItems.CheckConditionAndChangePlayerItem(itemInfo, info, conn, transaction);
@@ -30,7 +30,18 @@ namespace BusinessLayer.Services
                     await transaction.CommitAsync();
             }
         }
-
+        public async Task<bool> UpdatePlayerItemAsync(PlayerItemInfo itemInfo)
+        {
+            await using var conn = new MySqlConnection(_dbAddress);
+            await conn.OpenAsync();
+            var remainItem = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn);
+            await using var transaction = await conn.BeginTransactionAsync();
+            Console.WriteLine(remainItem.itemName);
+            if (remainItem == null)
+                return await _repositoryManager.PlayerItems.AddAsync(itemInfo, conn, transaction);
+            else
+                return await _repositoryManager.PlayerItems.UpdateAsync(itemInfo, conn, transaction);
+        }
         public async Task<List<PlayerItemInfo>> GetItemsByPlayerId(string playerId)
         {
             await using var conn = new MySqlConnection(_dbAddress);

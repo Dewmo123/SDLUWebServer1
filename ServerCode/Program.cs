@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Repositories;
+using ServerCode;
+
 //using ServerCode.Repositories;
 using System.Xml.Linq;
 
@@ -17,6 +19,7 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true; // 보안 강화
     options.Cookie.IsEssential = true; // 필수 쿠키로 설정
 });
+builder.Services.AddSingleton(new FileLogger("../../asd.txt"));
 builder.Services.AddScoped(provider => new ServiceManager($"Server=127.0.0.1;Port=3306;Database=sdlu_db_server;Uid=root;Pwd=1652;Pooling=true"));
 //DBManager.Instance.ConnectDB($"Server=127.0.0.1;Port=3306;Database=opentutorials;Uid=root;Pwd=1652;Pooling=true");
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";

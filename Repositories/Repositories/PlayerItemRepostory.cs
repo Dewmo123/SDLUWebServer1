@@ -80,8 +80,6 @@ namespace DataAccessLayer.Repositories
         }
         public async Task<bool> CheckConditionAndChangePlayerItem(PlayerItemInfo itemInfo,PlayerItemInfo remainItem, MySqlConnection conn, MySqlTransaction transaction)
         {
-            Console.WriteLine(remainItem.quantity);
-            Console.WriteLine(itemInfo.quantity);
             if (remainItem == null && itemInfo.quantity > 0)
                 return await AddAsync(itemInfo, conn, transaction);
 
@@ -91,7 +89,6 @@ namespace DataAccessLayer.Repositories
             remainItem.quantity = quantity;
             return await UpdateAsync(remainItem, conn, transaction);
         }
-
         public async Task<List<PlayerItemInfo>> GetItemsByPlayerId(string playerId, MySqlConnection connection)
         {
             MySqlCommand selectItems = new MySqlCommand(

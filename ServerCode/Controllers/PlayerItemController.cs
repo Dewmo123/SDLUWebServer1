@@ -9,20 +9,38 @@ namespace ServerCode.Controllers
     public class PlayerItemController : Controller
     {
         private PlayerItemService _playerItemService;
-        public PlayerItemController(ServiceManager dbManager)
+        private FileLogger _fileLogger;
+        public PlayerItemController(ServiceManager dbManager, FileLogger logger)
         {
             _playerItemService = dbManager.playerItemService;
+            _fileLogger = logger;
         }
-        [HttpPost("update-items")]
+        [HttpPatch("update-items")]
         public async Task<bool> UpdateItems([FromBody] List<PlayerItemInfo> request)
         {
-            string? playerId = HttpContext.Session.GetString("User");
-            if (playerId == null)
+            string? userId = HttpContext.Session.GetString("User");
+            if (userId == null)
                 return false;
-
+            _fileLogger.LogInfo($"{userId} Try Update Items");
             foreach (var itemUpdate in request)
-                if (await _playerItemService.ChangePlayerItemQuantityAsync(itemUpdate) == false)
+            {
+                if (itemUpdate.playerId != userId)
                     return false;
+                if (await _playerItemService.UpdatePlayerItemAsync(itemUpdate) == false)
+                    return false;
+            }
+
+            return true;
+        }
+        [HttpPatch("add-item")]
+        public async Task<bool> AddItem([FromBody] PlayerItemInfo itemDelta)
+        {
+            string? userId = HttpContext.Session.GetString("User");
+            if (userId == null)
+                return false;
+            _fileLogger.LogInfo($"{userId} Try Update Items");
+            if (await _playerItemService.ChangePlayerItemQuantityAsync(itemDelta) == false)
+                return false;
 
             return true;
         }
@@ -32,7 +50,7 @@ namespace ServerCode.Controllers
             string? playerId = HttpContext.Session.GetString("User");
             if (playerId != inPlayerItemInfo.playerId)
                 return false;
-            return await _playerItemService.ChangePlayerItemQuantityAsync(inPlayerItemInfo);
+            return await _playerItemService.UpdatePlayerItemAsync(inPlayerItemInfo);
         }
         [HttpGet("get-my-items")]
         public async Task<ActionResult<List<PlayerItemInfo>?>> GetItemsByPlayerId()

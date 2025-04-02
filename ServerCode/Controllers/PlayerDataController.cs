@@ -10,8 +10,10 @@ namespace ServerCode.Controllers
     public class PlayerDataController : Controller
     {
         private readonly PlayerLogInDataService playerDataService;
-        public PlayerDataController(ServiceManager manager)
+        private FileLogger _fileLogger;
+        public PlayerDataController(ServiceManager manager, FileLogger logger)
         {
+            _fileLogger = logger;
             playerDataService = manager.playerLogInDataService;
         }
         [HttpPost("sign-up")]
@@ -25,14 +27,14 @@ namespace ServerCode.Controllers
         [HttpPost("log-in")]
         public async Task<bool> Login([FromBody] PlayerInfo info)
         {
-            Console.WriteLine($"LogIn: {info.id}");
+            _fileLogger.LogInfo($"LogIn: {info.id}");
             if (await playerDataService.LogIn(info))
             {
                 HttpContext.Session.SetString("User", info.id);
-                Console.WriteLine($"LogIn {info.id} : Success");
+                _fileLogger.LogInfo($"LogIn {info.id} : Success");
                 return true;
             }
-            Console.WriteLine($"LogIn {info.id} : Failed");
+            _fileLogger.LogWarning($"LogIn {info.id} : Failed");
             return false;
         }
         [HttpGet("get-my-data")]
