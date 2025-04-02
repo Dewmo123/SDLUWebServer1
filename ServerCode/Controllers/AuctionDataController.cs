@@ -10,9 +10,11 @@ namespace ServerCode.Controllers
     public class AuctionDataController : Controller
     {
         private AuctionService auctionService;
-        public AuctionDataController(ServiceManager dbManager)
+        private FileLogger _fileLogger;
+        public AuctionDataController(ServiceManager dbManager,FileLogger logger)
         {
             auctionService = dbManager.auctionService;
+            _fileLogger = logger;
         }
         [HttpPost("post")]
         public async Task<bool> PostItemToAuction([FromBody]AuctionItemInfo auctionItemInfo)
@@ -21,18 +23,19 @@ namespace ServerCode.Controllers
             if (user == null)
                 return false;
             auctionItemInfo.playerId = user;
-            Console.WriteLine($"{user} PostItemToAuction: {auctionItemInfo.itemName}");
+            _fileLogger.LogInfo($"{user} PostItemToAuction: {auctionItemInfo.itemName}");
             return await auctionService.AddItemToAuction(auctionItemInfo);
         }
-        [HttpPost("purchase")]
-        public async Task<bool> PurchaseItem(BuyerInfo buyerInfo)
+        [HttpPatch("purchase")]
+        public async Task<bool> PurchaseItem([FromBody]BuyerInfo buyerInfo)
         {
             string? user = HttpContext.Session.GetString("User");
-            if (buyerInfo.buyerId != user && user == buyerInfo.itemInfo.playerId)
+            if (buyerInfo.buyerId != user || user == buyerInfo.itemInfo.playerId)
             {
                 Console.WriteLine("not same");
                 return false;
             }
+            _fileLogger.LogInfo($"{user} Try to purchase {buyerInfo.itemInfo.itemName}");
             return await auctionService.PurchaseItemInAuction(buyerInfo);
         }
         [HttpDelete("cancel")]

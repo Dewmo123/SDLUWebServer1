@@ -43,10 +43,11 @@ namespace DataAccessLayer.Repositories
 
             if (await table.ReadAsync())
             {
+                inPlayerGoldInfo.playerId = table.GetString(table.GetOrdinal(PLAYER_ID));
                 inPlayerGoldInfo.dictionary = table.GetString(table.GetOrdinal(DICTIONARY));
                 inPlayerGoldInfo.gold = table.GetInt32(table.GetOrdinal(GOLD));
             }
-            
+            Console.WriteLine(inPlayerGoldInfo.gold);
             await table.CloseAsync();
 
             return inPlayerGoldInfo;

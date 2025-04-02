@@ -36,7 +36,6 @@ namespace BusinessLayer.Services
             await conn.OpenAsync();
             var remainItem = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn);
             await using var transaction = await conn.BeginTransactionAsync();
-            Console.WriteLine(remainItem.itemName);
             if (remainItem == null)
                 return await _repositoryManager.PlayerItems.AddAsync(itemInfo, conn, transaction);
             else
