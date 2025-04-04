@@ -53,32 +53,7 @@ namespace ServerCode.Controllers
             string? playerId = HttpContext.Session.GetString("User");
             if (playerId == null)
                 return false;
-            var data = await playerDataService.GetPlayerData(playerId);
-            string defaultDictionaryJson = await playerDataService.SetUpDefaultDictionary();
-
-            if (data.dictionary == null)
-                data.dictionary = defaultDictionaryJson;
-
-            Dictionary<string, int>? defaultDictionary = JsonConvert.DeserializeObject<Dictionary<string, int>>(defaultDictionaryJson)!;
-            Dictionary<string, int>? playerDictionary = JsonConvert.DeserializeObject<Dictionary<string, int>>(data.dictionary)!;
-            int stack = 0;
-
-            if (playerDictionary.ContainsKey(key))
-                stack = playerDictionary[key];
-            else
-            {
-                if (defaultDictionary.ContainsKey(key))
-                    playerDictionary.Add(key, 0);
-                else
-                    return false;
-            }
-            int afterLogic = DictionaryUpgradeLogic(stack, data.gold);
-            if (afterLogic < 0)
-                return false;
-            data.gold = afterLogic;
-            return await playerDataService.UpdatePlayerData(data);
+            return await playerDataService.UpgradeDictionary(playerId, key);
         }
-
-        private int DictionaryUpgradeLogic(int stack, int gold) => gold -= stack * 3 + 5;
     }
 }
