@@ -14,7 +14,7 @@ namespace Repositories
         private AuctionService? _auctionService;
         private ItemInfoService? _itemInfoService;
         private PlayerItemService? _playerItemService;
-        private PlayerLogInDataService? _playerLogInDataService;
+        private PlayerDataService? _playerLogInDataService;
         public ServiceManager(string connectionAddress)
         {
             _dbAddress = connectionAddress;
@@ -24,6 +24,6 @@ namespace Repositories
         public AuctionService auctionService => _auctionService ??= new AuctionService(_repositoryManager, _dbAddress);
         public ItemInfoService itemInfoService => _itemInfoService ??= new ItemInfoService(_repositoryManager, _dbAddress);
         public PlayerItemService playerItemService => _playerItemService ??= new PlayerItemService(_repositoryManager, _dbAddress);
-        public PlayerLogInDataService playerLogInDataService => _playerLogInDataService ??= new PlayerLogInDataService(_repositoryManager, _dbAddress);
+        public PlayerDataService playerLogInDataService => _playerLogInDataService ??= new PlayerDataService(_repositoryManager, _dbAddress);
     }
 }

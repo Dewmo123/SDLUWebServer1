@@ -2,6 +2,7 @@
 using ServerCode.Models;
 using Repositories;
 using BusinessLayer.Services;
+using Newtonsoft.Json;
 
 namespace ServerCode.Controllers
 {
@@ -9,7 +10,7 @@ namespace ServerCode.Controllers
     [Route("/api/player")]
     public class PlayerDataController : Controller
     {
-        private readonly PlayerLogInDataService playerDataService;
+        private readonly PlayerDataService playerDataService;
         private FileLogger _fileLogger;
         public PlayerDataController(ServiceManager manager, FileLogger logger)
         {
@@ -19,7 +20,7 @@ namespace ServerCode.Controllers
         [HttpPost("sign-up")]
         public async Task<bool> SignUp([FromBody] PlayerInfo info)
         {
-            Console.WriteLine(info.id);
+            _fileLogger.LogInfo($"SignUp: {info.id}");
             if (info.id.Length > 8 && info.password.Length > 20)
                 return false;
             return await playerDataService.SignUp(info);
@@ -46,5 +47,38 @@ namespace ServerCode.Controllers
                 return NotFound();
             return await playerDataService.GetPlayerData(playerId);
         }
+        [HttpPatch("upgrade-dictionary")]
+        public async Task<bool> UpgradeDictionary(string key)
+        {
+            string? playerId = HttpContext.Session.GetString("User");
+            if (playerId == null)
+                return false;
+            var data = await playerDataService.GetPlayerData(playerId);
+            string defaultDictionaryJson = await playerDataService.SetUpDefaultDictionary();
+
+            if (data.dictionary == null)
+                data.dictionary = defaultDictionaryJson;
+
+            Dictionary<string, int>? defaultDictionary = JsonConvert.DeserializeObject<Dictionary<string, int>>(defaultDictionaryJson)!;
+            Dictionary<string, int>? playerDictionary = JsonConvert.DeserializeObject<Dictionary<string, int>>(data.dictionary)!;
+            int stack = 0;
+
+            if (playerDictionary.ContainsKey(key))
+                stack = playerDictionary[key];
+            else
+            {
+                if (defaultDictionary.ContainsKey(key))
+                    playerDictionary.Add(key, 0);
+                else
+                    return false;
+            }
+            int afterLogic = DictionaryUpgradeLogic(stack, data.gold);
+            if (afterLogic < 0)
+                return false;
+            data.gold = afterLogic;
+            return await playerDataService.UpdatePlayerData(data);
+        }
+
+        private int DictionaryUpgradeLogic(int stack, int gold) => gold -= stack * 3 + 5;
     }
 }

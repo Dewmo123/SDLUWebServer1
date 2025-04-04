@@ -2,21 +2,22 @@
 using Repositories;
 using ServerCode.Models;
 using Newtonsoft.Json;
+using System.Collections;
 namespace BusinessLayer.Services
 {
-    public class PlayerLogInDataService : Service
+    public class PlayerDataService : Service
     {
 
-        public PlayerLogInDataService(RepositoryManager repo, string dbAddress) : base(repo, dbAddress)
+        public PlayerDataService(RepositoryManager repo, string dbAddress) : base(repo, dbAddress)
         {
         }
-        private async Task<string> SetUpDefaultDictionary()
+        public async Task<string> SetUpDefaultDictionary()
         {
             await using MySqlConnection connection = new MySqlConnection(_dbAddress);
             await connection.OpenAsync();
             var items = await _repositoryManager.ItemInfos.GetItemInfoWithType(ItemType.dictionary, connection);
-            string json = JsonConvert.SerializeObject(items.ToDictionary(key => key, val => val), Formatting.Indented);
-            await connection.CloseAsync();
+            string json = JsonConvert.SerializeObject(items.ToDictionary(key => key.itemName, val => 0), Formatting.Indented);
+            await connection.CloseAsync(); 
             return json;
         }
         public async Task<bool> SignUp(PlayerInfo playerInfo)
@@ -73,6 +74,14 @@ namespace BusinessLayer.Services
 
             PlayerDataInfo myInfo = new PlayerDataInfo() { playerId = playerId };
             return await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(myInfo, connection);
+        }
+        public async Task<bool> UpdatePlayerData(PlayerDataInfo playerData)
+        {
+            await using MySqlConnection connection = new MySqlConnection(_dbAddress);
+            await connection.OpenAsync();
+            await using MySqlTransaction transaction = await connection.BeginTransactionAsync();
+
+            return await _repositoryManager.PlayerData.UpdateAsync(playerData, connection, transaction);
         }
     }
 }
