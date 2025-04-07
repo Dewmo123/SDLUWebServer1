@@ -12,7 +12,7 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            LogIn(5,CancelAuctionItem);
+            SignUp(6);
             while (true) { }
         }
         static async void AddItemToPlayer()
