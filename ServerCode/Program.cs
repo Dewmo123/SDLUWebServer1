@@ -38,7 +38,6 @@ builder.Services.AddControllers();
 //builder.Services.AddEndpointsApiExplorer();
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(3303);
     options.Limits.MaxConcurrentConnections = 100;  // 동시 연결 최대 100개
     options.Limits.MaxConcurrentUpgradedConnections = 100;
     options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
