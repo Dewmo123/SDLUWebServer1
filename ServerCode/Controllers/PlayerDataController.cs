@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ServerCode.Models;
 using Repositories;
 using BusinessLayer.Services;
 using Newtonsoft.Json;
+using ServerCode.DTO;
 
 namespace ServerCode.Controllers
 {
@@ -18,7 +18,7 @@ namespace ServerCode.Controllers
             playerDataService = manager.playerLogInDataService;
         }
         [HttpPost("sign-up")]
-        public async Task<bool> SignUp([FromBody] PlayerInfo info)
+        public async Task<bool> SignUp([FromBody] PlayerInfoDTO info)
         {
             _fileLogger.LogInfo($"SignUp: {info.id}");
             if (info.id.Length > 8 && info.password.Length > 20)
@@ -26,7 +26,7 @@ namespace ServerCode.Controllers
             return await playerDataService.SignUp(info);
         }
         [HttpPost("log-in")]
-        public async Task<bool> Login([FromBody] PlayerInfo info)
+        public async Task<bool> Login([FromBody] PlayerInfoDTO info)
         {
             _fileLogger.LogInfo($"LogIn: {info.id}");
             if (await playerDataService.LogIn(info))
@@ -39,7 +39,7 @@ namespace ServerCode.Controllers
             return false;
         }
         [HttpGet("get-my-data")]
-        public async Task<ActionResult<PlayerDataInfo>> GetMyData()
+        public async Task<ActionResult<PlayerDataInfoDTO>> GetMyData()
         {
             string? playerId = HttpContext.Session.GetString("User");
 
@@ -48,12 +48,14 @@ namespace ServerCode.Controllers
             return await playerDataService.GetPlayerData(playerId);
         }
         [HttpPatch("upgrade-dictionary")]
-        public async Task<bool> UpgradeDictionary(string key)
+        public async Task<bool> UpgradeDictionary(DictionaryUpgradeDTO dto)
         {
             string? playerId = HttpContext.Session.GetString("User");
             if (playerId == null)
                 return false;
-            return await playerDataService.UpgradeDictionary(playerId, key);
+            Console.WriteLine($"{playerId} Request Upgrade Item: {dto.dictionaryKey}, {dto.level}");
+            bool success = await playerDataService.UpgradeDictionary(playerId, dto);
+            return success;
         }
     }
 }

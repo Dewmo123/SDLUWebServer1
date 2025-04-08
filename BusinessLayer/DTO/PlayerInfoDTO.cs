@@ -13,22 +13,28 @@
         public int quantity { get; set; }
         public int TotalPrice => pricePerUnit * quantity;
     }
-    public record class PlayerItemInfo
+    public record class PlayerItemInfoDTO
     {
         public string playerId { get; set; } = null!;
         public string itemName { get; set; } = null!;
         public int quantity { get; set; }
     }
-    public record class PlayerDataInfo
+    public record class PlayerDataInfoDTO
     {
         public string? playerId { get; set; }
         public int gold { get; set; }
+        public string? dictionary { get; set; }
     }
-    public record class BuyerInfo
+    public record class BuyerInfoDTO
     {
         public string? buyerId { get; set; }
         public int buyCount { get; set; }
         public AuctionItemDTO itemInfo { get; set; } = null!;
         public int NeededMoney => buyCount * itemInfo.pricePerUnit;
+    }
+    public record class DictionaryUpgradeDTO
+    {
+        public string? dictionaryKey { get; set; }
+        public int level { get; set; }
     }
 }

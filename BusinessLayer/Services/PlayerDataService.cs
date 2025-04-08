@@ -4,6 +4,7 @@ using ServerCode.Models;
 using Newtonsoft.Json;
 using System.Collections;
 using System.Net.Http;
+using ServerCode.DTO;
 namespace BusinessLayer.Services
 {
     public class PlayerDataService : Service
@@ -21,18 +22,20 @@ namespace BusinessLayer.Services
             await connection.CloseAsync();
             return json;
         }
-        public async Task<PlayerDataInfo> GetPlayerData(string playerId)
+        public async Task<PlayerDataInfoDTO> GetPlayerData(string playerId)
         {
             await using MySqlConnection connection = new MySqlConnection(_dbAddress);
             await connection.OpenAsync();
 
             PlayerDataInfo myInfo = new PlayerDataInfo() { playerId = playerId };
-            return await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(myInfo, connection);
+            myInfo = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(myInfo, connection);
+            return new PlayerDataInfoDTO { gold = myInfo.gold, playerId = myInfo.playerId, dictionary = myInfo.dictionary };
         }
-        public async Task<bool> SignUp(PlayerInfo playerInfo)
+        public async Task<bool> SignUp(PlayerInfoDTO playerInfoDTO)
         {
             await using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
+            var playerInfo = new PlayerInfo() { id = playerInfoDTO.id, password = playerInfoDTO.password };
             var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn);
             await using MySqlTransaction transaction = await conn.BeginTransactionAsync();
             try
@@ -62,10 +65,11 @@ namespace BusinessLayer.Services
                 return false;
             }
         }
-        public async Task<bool> LogIn(PlayerInfo playerInfo)
+        public async Task<bool> LogIn(PlayerInfoDTO playerInfoDTO)
         {
             await using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
+            var playerInfo = new PlayerInfo() { id = playerInfoDTO.id, password = playerInfoDTO.password };
             try
             {
                 var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn);
@@ -77,12 +81,12 @@ namespace BusinessLayer.Services
             }
         }
 
-        public async Task<bool> UpgradeDictionary(string playerId, string key)
+        public async Task<bool> UpgradeDictionary(string playerId, DictionaryUpgradeDTO dto)
         {
             string defaultDictionaryJson = await SetUpDefaultDictionary();
             await using MySqlConnection connection = new MySqlConnection(_dbAddress);
             await connection.OpenAsync();
-
+            string key = dto.dictionaryKey!;
             var playerData = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(
                 new PlayerDataInfo() { playerId = playerId }, connection);
             var playerItemData = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(
@@ -93,16 +97,17 @@ namespace BusinessLayer.Services
 
             Dictionary<string, int>? defaultDictionary = JsonConvert.DeserializeObject<Dictionary<string, int>>(defaultDictionaryJson)!;
             Dictionary<string, int>? playerDictionary = JsonConvert.DeserializeObject<Dictionary<string, int>>(playerData.dictionary)!;
-            
+
             int stack = 0;
-            if (playerDictionary.ContainsKey(key))
+            if (playerDictionary.ContainsKey(key)) //if playerDictionary doesn't contain reqKey, compare defualtDic and add or fail
                 stack = playerDictionary[key];
             else
                 if (defaultDictionary.ContainsKey(key))
-                    playerDictionary.Add(key, 0);
-                else
-                    return false;
-
+                playerDictionary.Add(key, 0);
+            else
+                return false;
+            if (stack != dto.level)
+                return false;
             int afterLogic = DictionaryUpgradeLogic(stack, playerItemData.quantity);
             if (afterLogic < 0)
                 return false;
@@ -110,6 +115,7 @@ namespace BusinessLayer.Services
             playerDictionary[key]++;
 
             playerData.dictionary = JsonConvert.SerializeObject(playerDictionary);
+            Console.WriteLine(playerData.dictionary);
             await using MySqlTransaction transaction = await connection.BeginTransactionAsync();
             bool success = true;
             success &= await _repositoryManager.PlayerData.UpdateAsync(playerData, connection, transaction);
