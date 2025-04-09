@@ -1,14 +1,16 @@
-﻿using MySqlConnector;
+﻿using AutoMapper;
+using MySqlConnector;
 using Repositories;
-using ServerCode.Models;
+using ServerCode.DAO;
 
 namespace BusinessLayer.Services
 {
     public class ItemInfoService : Service
     {
-        public ItemInfoService(RepositoryManager repo, string dbAddress) : base(repo, dbAddress)
+        public ItemInfoService(RepositoryManager repo, IMapper mapper, string dbAddress) : base(repo, mapper, dbAddress)
         {
         }
+
         public async Task<bool> AddItemInfo(ItemInfo itemInfo)
         {
             await using MySqlConnection conn = new MySqlConnection(_dbAddress);

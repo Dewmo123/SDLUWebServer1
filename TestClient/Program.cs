@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 //using ServerCode.Controllers;
-using ServerCode.Models;
+using ServerCode.DAO;
+using ServerCode.DTO;
 using System.Net.Http.Json;
 using System.Text;
 
@@ -18,7 +19,7 @@ namespace TestClient
         static async void AddItemToPlayer()
         {
             string url = "http://localhost:3303/api/update-item";
-            PlayerItemInfo itemInfo = new PlayerItemInfo()
+            PlayerItemDAO itemInfo = new PlayerItemDAO()
             {
                 itemName = "sword",
                 playerId = "qwweewq2",
@@ -41,7 +42,7 @@ namespace TestClient
         static async void AddItemToAuction()
         {
             string url = "http://localhost:3303/api/auction/post";
-            var itemInfo = new AuctionItemInfo()
+            var itemInfo = new AuctionItemDAO()
             {
                 itemName = "mantis",
                 playerId = "qwer",
@@ -57,7 +58,7 @@ namespace TestClient
         static async void CancelItemFromAuction()
         {
             string url = "http://localhost:3303/api/auction/cancel?playerId=qwweewq2&itemId=1&pricePerUnit=5&quantity=3";
-            var itemInfo = new AuctionItemInfo()
+            var itemInfo = new AuctionItemDAO()
             {
                 itemName = "sword",
                 playerId = "qwweewq2",
@@ -72,11 +73,11 @@ namespace TestClient
         static async void PurchaseItemFromAuction()
         {
             string url = "http://localhost:3303/api/auction/purchase-item";
-            var itemInfo = new BuyerInfo()
+            var itemInfo = new BuyerDTO()
             {
                 buyCount = 5,
                 buyerId = "qwweewq1",
-                itemInfo = new AuctionItemInfo()
+                itemInfo = new AuctionItemDAO()
                 {
                     itemName = "sword",
                     playerId = "qwweewq2",
@@ -93,7 +94,7 @@ namespace TestClient
         static async void LogIn(int id, Action callback)
         {
             string url = "http://localhost:3303/api/player/log-in";
-            PlayerInfo pc = new PlayerInfo { id = $"qwer", password = "1234" };
+            PlayerDAO pc = new PlayerDAO { id = $"qwer", password = "1234" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             Console.WriteLine("LogIN");
@@ -108,13 +109,13 @@ namespace TestClient
             HttpResponseMessage msg = await client.GetAsync(url);
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
-            PlayerDataInfo? info = JsonConvert.DeserializeObject<PlayerDataInfo>(result);
+            PlayerDataDAO? info = JsonConvert.DeserializeObject<PlayerDataDAO>(result);
 
         }
         static async void SignUp(int id)
         {
             string url = "http://sdludb.duckdns.org:3303/api/player/sign-up";
-            PlayerInfo pc = new PlayerInfo { id = $"qwweewq{id}", password = "qqwweedd" };
+            PlayerDAO pc = new PlayerDAO { id = $"qwweewq{id}", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage msg = await client.PostAsync(url, content);

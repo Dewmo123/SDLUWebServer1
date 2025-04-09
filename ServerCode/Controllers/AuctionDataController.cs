@@ -1,7 +1,7 @@
 ﻿using BusinessLayer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Repositories;
-using ServerCode.Models;
+using ServerCode.DTO;
 
 namespace ServerCode.Controllers
 {
@@ -17,7 +17,7 @@ namespace ServerCode.Controllers
             _fileLogger = logger;
         }
         [HttpPost("post")]
-        public async Task<bool> PostItemToAuction([FromBody]AuctionItemInfo auctionItemInfo)
+        public async Task<bool> PostItemToAuction([FromBody]AuctionItemDTO auctionItemInfo)
         {
             string? user = HttpContext.Session.GetString("User");
             if (user == null)
@@ -27,7 +27,7 @@ namespace ServerCode.Controllers
             return await auctionService.AddItemToAuction(auctionItemInfo);
         }
         [HttpPatch("purchase")]
-        public async Task<bool> PurchaseItem([FromBody]BuyerInfo buyerInfo)
+        public async Task<bool> PurchaseItem([FromBody]BuyerDTO buyerInfo)
         {
             string? user = HttpContext.Session.GetString("User");
             if (buyerInfo.buyerId != user || user == buyerInfo.itemInfo.playerId)
@@ -45,11 +45,10 @@ namespace ServerCode.Controllers
             Console.WriteLine($"{userId} Cancel Auction Item: {itemName}");
             if (userId == null)
                 return false;
-            return await auctionService.CancelAuctionItem(
-                new AuctionItemInfo() { playerId = userId, itemName = itemName, pricePerUnit = pricePerUnit });
+            return await auctionService.CancelAuctionItem(userId,itemName,pricePerUnit);
         }
         [HttpGet("get-items")]
-        public async Task<ActionResult<List<AuctionItemInfo>>?> GetItemsByItemName(string itemName)
+        public async Task<ActionResult<List<AuctionItemDTO>>?> GetItemsByItemName(string itemName)
         {
             string? playerId = HttpContext.Session.GetString("User");
             Console.WriteLine($"playerId Access: {itemName}");
@@ -58,7 +57,7 @@ namespace ServerCode.Controllers
             return await auctionService.GetAuctionItemByItemName(itemName);
         }
         [HttpGet("get-my-items")]
-        public async Task<ActionResult<List<AuctionItemInfo>>?> GetItemsByPlayerName()
+        public async Task<ActionResult<List<AuctionItemDTO>>?> GetItemsByPlayerName()
         {
             string? userId = HttpContext.Session.GetString("User");
             if (userId == null)

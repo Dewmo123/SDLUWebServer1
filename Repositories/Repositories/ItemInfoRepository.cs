@@ -1,6 +1,6 @@
 ﻿using MySqlConnector;
 using Repositories;
-using ServerCode.Models;
+using ServerCode.DAO;
 using static Repositories.DBConfig;
 namespace DataAccessLayer.Repositories
 {

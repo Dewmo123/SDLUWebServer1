@@ -1,17 +1,17 @@
 ﻿using MySqlConnector;
 using Repositories;
-using ServerCode.Models;
+using ServerCode.DAO;
 using static Repositories.DBConfig;
 
 namespace DataAccessLayer.Repositories
 {
-    public interface IPlayerDataRepository : IRepository<PlayerDataInfo>
+    public interface IPlayerDataRepository : IRepository<PlayerDataDAO>
     {
-        public Task<bool> ChangeQuantityFromPlayer(PlayerDataInfo dataInfo, MySqlConnection conn, MySqlTransaction transaction);
+        public Task<bool> ChangeQuantityFromPlayer(PlayerDataDAO dataInfo, MySqlConnection conn, MySqlTransaction transaction);
     }
     public class PlayerDataRepository : IPlayerDataRepository
     {
-        public async Task<bool> AddAsync(PlayerDataInfo inPlayerGoldInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> AddAsync(PlayerDataDAO inPlayerGoldInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand addGoldInfo = new MySqlCommand(
                 $"INSERT {PLAYER_DATA_TABLE} ({PLAYER_ID},{GOLD},{DICTIONARY})" +
@@ -25,35 +25,34 @@ namespace DataAccessLayer.Repositories
             return await addGoldInfo.ExecuteNonQueryAsync() == 1;
         }
 
-        public Task<bool> DeleteWithPrimaryKeysAsync(PlayerDataInfo entity, MySqlConnection connection, MySqlTransaction transaction)
+        public Task<bool> DeleteWithPrimaryKeysAsync(PlayerDataDAO entity, MySqlConnection connection, MySqlTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<PlayerDataInfo>> GetAllItemsAsync(MySqlConnection connection)
+        public Task<List<PlayerDataDAO>> GetAllItemsAsync(MySqlConnection connection)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<PlayerDataInfo> GetItemByPrimaryKeysAsync(PlayerDataInfo inPlayerGoldInfo, MySqlConnection connection)
+        public async Task<PlayerDataDAO> GetItemByPrimaryKeysAsync(PlayerDataDAO inPlayerGoldInfo, MySqlConnection connection)
         {
             MySqlCommand getItem = new MySqlCommand($"SELECT * FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = @playerId", connection);
             getItem.Parameters.AddWithValue("@playerId", inPlayerGoldInfo.playerId);
             var table = await getItem.ExecuteReaderAsync();
-
+            PlayerDataDAO newItem = new();
             if (await table.ReadAsync())
             {
-                inPlayerGoldInfo.playerId = table.GetString(table.GetOrdinal(PLAYER_ID));
-                inPlayerGoldInfo.dictionary = table.GetString(table.GetOrdinal(DICTIONARY));
-                inPlayerGoldInfo.gold = table.GetInt32(table.GetOrdinal(GOLD));
+                newItem.playerId = table.GetString(table.GetOrdinal(PLAYER_ID));
+                newItem.dictionary = table.GetString(table.GetOrdinal(DICTIONARY));
+                newItem.gold = table.GetInt32(table.GetOrdinal(GOLD));
             }
-            Console.WriteLine(inPlayerGoldInfo.gold);
             await table.CloseAsync();
 
-            return inPlayerGoldInfo;
+            return newItem;
         }
 
-        public async Task<bool> UpdateAsync(PlayerDataInfo info, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> UpdateAsync(PlayerDataDAO info, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand updateItem = new MySqlCommand(
                 $"UPDATE {PLAYER_DATA_TABLE}" +
@@ -64,7 +63,7 @@ namespace DataAccessLayer.Repositories
             updateItem.Parameters.AddWithValue("@dictionary", info.dictionary);
             return await updateItem.ExecuteNonQueryAsync() == 1;
         }
-        public async Task<bool> ChangeQuantityFromPlayer(PlayerDataInfo dataInfo, MySqlConnection conn, MySqlTransaction transaction)
+        public async Task<bool> ChangeQuantityFromPlayer(PlayerDataDAO dataInfo, MySqlConnection conn, MySqlTransaction transaction)
         {
             var info = await GetItemByPrimaryKeysAsync(dataInfo, conn);
 

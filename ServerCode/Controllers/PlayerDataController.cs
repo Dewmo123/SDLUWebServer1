@@ -18,7 +18,7 @@ namespace ServerCode.Controllers
             playerDataService = manager.playerLogInDataService;
         }
         [HttpPost("sign-up")]
-        public async Task<bool> SignUp([FromBody] PlayerInfoDTO info)
+        public async Task<bool> SignUp([FromBody] PlayerDTO info)
         {
             _fileLogger.LogInfo($"SignUp: {info.id}");
             if (info.id.Length > 8 && info.password.Length > 20)
@@ -26,7 +26,7 @@ namespace ServerCode.Controllers
             return await playerDataService.SignUp(info);
         }
         [HttpPost("log-in")]
-        public async Task<bool> Login([FromBody] PlayerInfoDTO info)
+        public async Task<bool> Login([FromBody] PlayerDTO info)
         {
             _fileLogger.LogInfo($"LogIn: {info.id}");
             if (await playerDataService.LogIn(info))
@@ -39,7 +39,7 @@ namespace ServerCode.Controllers
             return false;
         }
         [HttpGet("get-my-data")]
-        public async Task<ActionResult<PlayerDataInfoDTO>> GetMyData()
+        public async Task<ActionResult<PlayerDataDTO>> GetMyData()
         {
             string? playerId = HttpContext.Session.GetString("User");
 

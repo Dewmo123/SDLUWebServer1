@@ -1,4 +1,5 @@
-﻿using Repositories;
+﻿using AutoMapper;
+using Repositories;
 
 namespace BusinessLayer.Services
 {
@@ -6,8 +7,10 @@ namespace BusinessLayer.Services
     {
         protected string _dbAddress;
         protected RepositoryManager _repositoryManager;
-        public Service(RepositoryManager repo,string dbAddress)
+        protected IMapper _mapper;
+        public Service(RepositoryManager repo,IMapper mapper,string dbAddress)
         {
+            _mapper = mapper;
             _dbAddress = dbAddress;
             _repositoryManager = repo;
         }

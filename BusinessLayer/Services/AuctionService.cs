@@ -1,20 +1,23 @@
-﻿using MySqlConnector;
+﻿using AutoMapper;
+using MySqlConnector;
 using Repositories;
-using ServerCode.Models;
+using ServerCode.DTO;
+using ServerCode.DAO;
 
 namespace BusinessLayer.Services
 {
     public class AuctionService : Service
     {
-        public AuctionService(RepositoryManager repo, string dbAddress) : base(repo, dbAddress)
+        public AuctionService(RepositoryManager repo, IMapper mapper, string dbAddress) : base(repo, mapper, dbAddress)
         {
         }
 
-        public async Task<bool> AddItemToAuction(AuctionItemInfo auctionItemInfo)
+        public async Task<bool> AddItemToAuction(AuctionItemDTO auctionItemDTO)
         {
             await using var conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
-            var playerItemInfo = new PlayerItemInfo() { playerId = auctionItemInfo.playerId, itemName = auctionItemInfo.itemName, quantity = 0 };
+            AuctionItemDAO auctionItemInfo = _mapper.Map<AuctionItemDTO, AuctionItemDAO>(auctionItemDTO);
+            var playerItemInfo = new PlayerItemDAO() { playerId = auctionItemInfo.playerId, itemName = auctionItemInfo.itemName, quantity = 0 };
 
             playerItemInfo = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(playerItemInfo, conn);
             var remainItemInfo = await _repositoryManager.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn);
@@ -28,12 +31,11 @@ namespace BusinessLayer.Services
                 await conn.CloseAsync();
                 return false;
             }
+            playerItemInfo.quantity = remainQuantity;
             using var transaction = await conn.BeginTransactionAsync();
             try
             {
-                bool success = await _repositoryManager.PlayerItems.UpdateAsync(
-                    new PlayerItemInfo() { playerId = auctionItemInfo.playerId, itemName = auctionItemInfo.itemName, quantity = remainQuantity }
-                    , conn, transaction);
+                bool success = await _repositoryManager.PlayerItems.UpdateAsync(playerItemInfo,conn,transaction);
 
                 if (remainItemInfo == null && auctionItemInfo.quantity > 0)
                 {
@@ -61,17 +63,17 @@ namespace BusinessLayer.Services
             }
         }
 
-        public async Task<bool> PurchaseItemInAuction(BuyerInfo buyerInfo)
+        public async Task<bool> PurchaseItemInAuction(BuyerDTO buyerInfo)
         {
             try
             {
                 await using MySqlConnection conn = new MySqlConnection(_dbAddress);
                 await conn.OpenAsync();
 
-                PlayerDataInfo buyer = new() { playerId = buyerInfo.buyerId, gold = 0 };
+                PlayerDataDAO buyer = new() { playerId = buyerInfo.buyerId, gold = 0 };
                 buyer = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(buyer, conn);
 
-                AuctionItemInfo? auctionItem = buyerInfo.itemInfo;
+                AuctionItemDAO? auctionItem = buyerInfo.itemInfo;
                 auctionItem = await _repositoryManager.AuctionItems.GetItemByPrimaryKeysAsync(auctionItem, conn);
 
                 if (buyer == null || auctionItem == null)
@@ -90,10 +92,10 @@ namespace BusinessLayer.Services
                 bool success = true;
 
 
-                PlayerDataInfo sellerInfo = new() { playerId = auctionItem.playerId, gold = 0 };
+                PlayerDataDAO sellerInfo = new() { playerId = auctionItem.playerId, gold = 0 };
                 sellerInfo = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(sellerInfo, conn);
 
-                PlayerItemInfo itemInfo = new() { itemName = auctionItem.itemName, playerId = buyer.playerId, quantity = buyerInfo.buyCount };
+                PlayerItemDAO itemInfo = new() { itemName = auctionItem.itemName, playerId = buyer.playerId, quantity = buyerInfo.buyCount };
                 var remainItem = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn);
 
                 await using MySqlTransaction transaction = await conn.BeginTransactionAsync();
@@ -125,18 +127,19 @@ namespace BusinessLayer.Services
                 return false;
             }
         }
-        public async Task<bool> CancelAuctionItem(AuctionItemInfo auctionItemInfo)
+        public async Task<bool> CancelAuctionItem(string playerId,string itemName,int pricePerUnit)
         {
             await using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
+            AuctionItemDAO auctionItemInfo = new() { itemName = itemName, playerId = playerId, pricePerUnit = pricePerUnit };
             auctionItemInfo = await _repositoryManager.AuctionItems.GetItemByPrimaryKeysAsync(auctionItemInfo, conn);
             if (auctionItemInfo == null)
             {
                 await conn.CloseAsync();
                 return false;
             }
-            PlayerItemInfo playerItemInfo = new(auctionItemInfo);
-            PlayerItemInfo remainItem = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(playerItemInfo, conn);
+            PlayerItemDAO playerItemInfo = new(auctionItemInfo);
+            PlayerItemDAO remainItem = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(playerItemInfo, conn);
             using MySqlTransaction transaction = await conn.BeginTransactionAsync();
             try
             {
@@ -157,19 +160,23 @@ namespace BusinessLayer.Services
                 return false;
             }
         }
-        public async Task<List<AuctionItemInfo>> GetAuctionItemByItemName(string itemName)
+        public async Task<List<AuctionItemDTO>> GetAuctionItemByItemName(string itemName)
         {
             await using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
-            List<AuctionItemInfo> datas = await _repositoryManager.AuctionItems.GetItemsByItemName(itemName, conn);
-            return datas;
+            var datas = await _repositoryManager.AuctionItems.GetItemsByItemName(itemName, conn);
+            List<AuctionItemDTO> dtos = new List<AuctionItemDTO>();
+            datas.ForEach(item => dtos.Add(_mapper.Map<AuctionItemDAO, AuctionItemDTO>(item)));
+            return dtos;
         }
-        public async Task<List<AuctionItemInfo>> GetAuctionnItemByPlayerId(string playerId)
+        public async Task<List<AuctionItemDTO>> GetAuctionnItemByPlayerId(string playerId)
         {
             await using MySqlConnection conn = new MySqlConnection(_dbAddress);
             await conn.OpenAsync();
             var datas = await _repositoryManager.AuctionItems.GetItemsByPlayerId(playerId, conn);
-            return datas;
+            List<AuctionItemDTO> dtos = new List<AuctionItemDTO>();
+            datas.ForEach(item => dtos.Add(_mapper.Map<AuctionItemDAO, AuctionItemDTO>(item)));
+            return dtos;
         }
     }
 }

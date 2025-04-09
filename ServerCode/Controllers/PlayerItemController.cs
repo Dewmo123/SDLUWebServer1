@@ -1,7 +1,7 @@
 ﻿using BusinessLayer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Repositories;
-using ServerCode.Models;
+using ServerCode.DTO;
 
 namespace ServerCode.Controllers
 {
@@ -16,7 +16,7 @@ namespace ServerCode.Controllers
             _fileLogger = logger;
         }
         [HttpPatch("update-items")]
-        public async Task<bool> UpdateItems([FromBody] List<PlayerItemInfo> request)
+        public async Task<bool> UpdateItems([FromBody] List<PlayerItemDTO> request)
         {
             string? userId = HttpContext.Session.GetString("User");
             if (userId == null)
@@ -24,36 +24,34 @@ namespace ServerCode.Controllers
             _fileLogger.LogInfo($"{userId} Try Update Items");
             foreach (var itemUpdate in request)
             {
-                if (itemUpdate.playerId != userId)
-                    return false;
-                if (await _playerItemService.UpdatePlayerItemAsync(itemUpdate) == false)
+                if (await _playerItemService.UpdatePlayerItemAsync(itemUpdate, userId) == false)
                     return false;
             }
 
             return true;
         }
         [HttpPatch("add-item")]
-        public async Task<bool> AddItem([FromBody] PlayerItemInfo itemDelta)
+        public async Task<bool> AddItem([FromBody] PlayerItemDTO itemDelta)
         {
             string? userId = HttpContext.Session.GetString("User");
             if (userId == null)
                 return false;
             _fileLogger.LogInfo($"{userId} Try Update Items");
-            if (await _playerItemService.ChangePlayerItemQuantityAsync(itemDelta) == false)
+            if (await _playerItemService.ChangePlayerItemQuantityAsync(itemDelta, userId) == false)
                 return false;
 
             return true;
         }
         [HttpPost("update-item")]
-        public async Task<bool> UpdateItem([FromBody] PlayerItemInfo inPlayerItemInfo)
+        public async Task<bool> UpdateItem([FromBody] PlayerItemDTO inPlayerItemInfo)
         {
-            string? playerId = HttpContext.Session.GetString("User");
-            if (playerId != inPlayerItemInfo.playerId)
+            string? userId = HttpContext.Session.GetString("User");
+            if (userId == null)
                 return false;
-            return await _playerItemService.UpdatePlayerItemAsync(inPlayerItemInfo);
+            return await _playerItemService.UpdatePlayerItemAsync(inPlayerItemInfo,userId);
         }
         [HttpGet("get-my-items")]
-        public async Task<ActionResult<List<PlayerItemInfo>?>> GetItemsByPlayerId()
+        public async Task<ActionResult<List<PlayerItemDTO>?>> GetItemsByPlayerId()
         {
             string? userId = HttpContext.Session.GetString("User");
             Console.WriteLine($"Get MyItems Request");

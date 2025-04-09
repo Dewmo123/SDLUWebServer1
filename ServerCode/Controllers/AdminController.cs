@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ServerCode.Models;
+using ServerCode.DAO;
 using Repositories;
 
 namespace ServerCode.Controllers

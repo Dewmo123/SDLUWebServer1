@@ -1,9 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using AutoMapper;
 using Repositories;
 using ServerCode;
+using ServerCode.DAO;
+using ServerCode.DTO;
+
 
 //using ServerCode.Repositories;
-using System.Xml.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 // 🔹 세션을 위한 메모리 캐시 추가
@@ -21,7 +23,29 @@ builder.Services.AddSession(options =>
 });
 builder.Services.AddSingleton(new FileLogger("../../asd.txt"));
 string connection = builder.Configuration.GetConnectionString("DefaultConnection")!;
-builder.Services.AddScoped(provider => new ServiceManager(connection));
+
+#region SetMapper
+(Type, Type)[] types =
+{
+    (typeof(PlayerDTO),typeof(PlayerDAO)),
+    (typeof(PlayerDataDTO),typeof(PlayerDataDAO)),
+    (typeof(PlayerItemDTO),typeof(PlayerItemDAO)),
+    (typeof(AuctionItemDTO),typeof(AuctionItemDAO)),
+};
+var config = new MapperConfiguration(expression =>
+{
+    foreach (var item in types)
+    {
+        Type? dtoType = item.Item1;
+        Type? daoType = item.Item2;
+        expression!.CreateMap(dtoType, daoType);
+        expression.CreateMap(daoType, dtoType);
+    }
+});
+
+#endregion
+
+builder.Services.AddScoped(provider => new ServiceManager(config.CreateMapper(), connection));
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.Services.AddCors(options =>
