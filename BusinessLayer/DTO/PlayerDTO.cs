@@ -1,6 +1,8 @@
-﻿namespace ServerCode.DTO
+﻿using ServerCode.DAO;
+
+namespace ServerCode.DTO
 {
-    public record class PlayerInfoDTO
+    public record class PlayerDTO
     {
         public string id { get; set; } = null!;
         public string password { get; set; } = null!;
@@ -13,23 +15,22 @@
         public int quantity { get; set; }
         public int TotalPrice => pricePerUnit * quantity;
     }
-    public record class PlayerItemInfoDTO
+    public record class PlayerItemDTO
     {
-        public string playerId { get; set; } = null!;
         public string itemName { get; set; } = null!;
         public int quantity { get; set; }
     }
-    public record class PlayerDataInfoDTO
+    public record class PlayerDataDTO
     {
         public string? playerId { get; set; }
         public int gold { get; set; }
         public string? dictionary { get; set; }
     }
-    public record class BuyerInfoDTO
+    public record class BuyerDTO
     {
         public string? buyerId { get; set; }
         public int buyCount { get; set; }
-        public AuctionItemDTO itemInfo { get; set; } = null!;
+        public AuctionItemDAO itemInfo { get; set; } = null!;
         public int NeededMoney => buyCount * itemInfo.pricePerUnit;
     }
     public record class DictionaryUpgradeDTO

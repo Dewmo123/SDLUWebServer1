@@ -1,4 +1,4 @@
-﻿namespace ServerCode.Models
+﻿namespace ServerCode.DAO
 {
     public enum ItemType
     {

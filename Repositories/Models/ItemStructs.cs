@@ -1,4 +1,4 @@
-﻿namespace ServerCode.Models
+﻿namespace ServerCode.DAO
 {
     //Table과 동일
     public class ItemInfo
