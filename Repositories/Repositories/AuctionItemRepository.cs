@@ -110,7 +110,7 @@ namespace DataAccessLayer.Repositories
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
                     quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
                     pricePerUnit = table.GetInt32(table.GetOrdinal(PRICE_PER_UNIT)),
-                    itemName = playerId
+                    itemName = table.GetString(table.GetOrdinal(ITEM_NAME))
                 });
             }
             await table.CloseAsync();

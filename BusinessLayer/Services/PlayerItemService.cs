@@ -44,10 +44,16 @@ namespace BusinessLayer.Services
 
             var remainItem = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn);
             await using var transaction = await conn.BeginTransactionAsync();
+            bool success = true;
             if (remainItem == null)
-                return await _repositoryManager.PlayerItems.AddAsync(itemInfo, conn, transaction);
+                success &= await _repositoryManager.PlayerItems.AddAsync(itemInfo, conn, transaction);
             else
-                return await _repositoryManager.PlayerItems.UpdateAsync(itemInfo, conn, transaction);
+                success &= await _repositoryManager.PlayerItems.UpdateAsync(itemInfo, conn, transaction);
+            if (success)
+                await transaction.CommitAsync();
+            else
+                await transaction.RollbackAsync();
+            return success;
         }
         public async Task<List<PlayerItemDTO>> GetItemsByPlayerId(string playerId)
         {

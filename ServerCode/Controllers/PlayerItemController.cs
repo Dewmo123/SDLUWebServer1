@@ -16,7 +16,7 @@ namespace ServerCode.Controllers
             _fileLogger = logger;
         }
         [HttpPatch("update-items")]
-        public async Task<bool> UpdateItems([FromBody] List<PlayerItemDTO> request)
+        public async Task<bool> UpdateItems([FromBody] List<PlayerItemDTO> request) //얘는 아예 덮어씌우는거라 나중에 던전에서 얻을걸 더해주는 걸로 해야할듯
         {
             string? userId = HttpContext.Session.GetString("User");
             if (userId == null)
@@ -48,7 +48,7 @@ namespace ServerCode.Controllers
             string? userId = HttpContext.Session.GetString("User");
             if (userId == null)
                 return false;
-            return await _playerItemService.UpdatePlayerItemAsync(inPlayerItemInfo,userId);
+            return await _playerItemService.UpdatePlayerItemAsync(inPlayerItemInfo, userId);
         }
         [HttpGet("get-my-items")]
         public async Task<ActionResult<List<PlayerItemDTO>?>> GetItemsByPlayerId()
