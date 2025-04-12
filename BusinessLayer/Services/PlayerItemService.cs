@@ -13,15 +13,15 @@ namespace BusinessLayer.Services
 
         public async Task<bool> ChangePlayerItemQuantityAsync(PlayerItemDTO itemInfoDTO,string userId)
         {
-            await using var conn = new MySqlConnection(_dbAddress);
-            await conn.OpenAsync();
+            await using var connection = new MySqlConnection(_dbAddress);
+            await connection.OpenAsync();
             var itemInfo = _mapper.Map<PlayerItemDTO,PlayerItemDAO>(itemInfoDTO);
             itemInfo.playerId = userId;
-            var info = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn);
-            await using var transaction = await conn.BeginTransactionAsync();
+            var info = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, connection);
+            await using var transaction = await connection.BeginTransactionAsync();
             try
             {
-                return await _repositoryManager.PlayerItems.CheckConditionAndChangePlayerItem(itemInfo, info, conn, transaction);
+                return await _repositoryManager.PlayerItems.CheckConditionAndChangePlayerItem(itemInfo, info, connection, transaction);
             }
             catch (Exception)
             {
@@ -36,19 +36,19 @@ namespace BusinessLayer.Services
         }
         public async Task<bool> UpdatePlayerItemAsync(PlayerItemDTO itemInfoDTO,string userId)
         {
-            await using var conn = new MySqlConnection(_dbAddress);
-            await conn.OpenAsync();
+            await using var connection = new MySqlConnection(_dbAddress);
+            await connection.OpenAsync();
 
             PlayerItemDAO itemInfo = _mapper.Map<PlayerItemDTO, PlayerItemDAO>(itemInfoDTO);
             itemInfo.playerId = userId;
 
-            var remainItem = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, conn);
-            await using var transaction = await conn.BeginTransactionAsync();
+            var remainItem = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(itemInfo, connection);
+            await using var transaction = await connection.BeginTransactionAsync();
             bool success = true;
             if (remainItem == null)
-                success &= await _repositoryManager.PlayerItems.AddAsync(itemInfo, conn, transaction);
+                success &= await _repositoryManager.PlayerItems.AddAsync(itemInfo, connection, transaction);
             else
-                success &= await _repositoryManager.PlayerItems.UpdateAsync(itemInfo, conn, transaction);
+                success &= await _repositoryManager.PlayerItems.UpdateAsync(itemInfo, connection, transaction);
             if (success)
                 await transaction.CommitAsync();
             else
@@ -57,15 +57,15 @@ namespace BusinessLayer.Services
         }
         public async Task<List<PlayerItemDTO>> GetItemsByPlayerId(string playerId)
         {
-            await using var conn = new MySqlConnection(_dbAddress);
-            await conn.OpenAsync();
-            var playerItemInfos = await _repositoryManager.PlayerItems.GetItemsByPlayerId(playerId, conn);
+            await using var connection = new MySqlConnection(_dbAddress);
+            await connection.OpenAsync();
+            var playerItemInfos = await _repositoryManager.PlayerItems.GetItemsByPlayerId(playerId, connection);
             List<PlayerItemDTO> items = new List<PlayerItemDTO>();
             playerItemInfos.ForEach(item => items.Add(_mapper.Map<PlayerItemDAO,PlayerItemDTO>(item)));
             return items;
         }
 
-        private bool DeleteItem(MySqlConnection conn, MySqlTransaction transaction,
+        private bool DeleteItem(MySqlConnection connection, MySqlTransaction transaction,
             PlayerItemDAO itemInfo)
         {
             return true;

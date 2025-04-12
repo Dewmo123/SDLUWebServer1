@@ -39,16 +39,14 @@ namespace DataAccessLayer.Repositories
                 $" WHERE {PLAYER_ID} = @playerId", connection);
             command.Parameters.AddWithValue("@playerId", playerInfo.id);
             var table = await command.ExecuteReaderAsync();
-            PlayerDAO info = new PlayerDAO();
+            PlayerDAO newInfo = new PlayerDAO();
             while (await table.ReadAsync())
             {
-                string playerId = table.GetString(table.GetOrdinal(PLAYER_ID));
-                string password = table.GetString(table.GetOrdinal(PASSWORD));
-                info.id = playerId;
-                info.password = password;
+                newInfo.id = table.GetString(table.GetOrdinal(PLAYER_ID));
+                newInfo.password = table.GetString(table.GetOrdinal(PASSWORD));
             }
             await table.CloseAsync();
-            return info;
+            return newInfo;
         }
 
         public Task<bool> UpdateAsync(PlayerDAO entity, MySqlConnection connection, MySqlTransaction transaction)

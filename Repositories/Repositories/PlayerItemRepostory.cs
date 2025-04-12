@@ -7,7 +7,7 @@ namespace DataAccessLayer.Repositories
 {
     public interface IPlayerItemRepository : IRepository<PlayerItemDAO>
     {
-        public Task<bool> CheckConditionAndChangePlayerItem(PlayerItemDAO itemInfo, PlayerItemDAO remainItem, MySqlConnection conn, MySqlTransaction transaction);
+        public Task<bool> CheckConditionAndChangePlayerItem(PlayerItemDAO itemInfo, PlayerItemDAO remainItem, MySqlConnection connection, MySqlTransaction transaction);
         public Task<List<PlayerItemDAO>> GetItemsByPlayerId(string playerId, MySqlConnection connection);
     }
     public class PlayerItemRepostory : IPlayerItemRepository
@@ -78,16 +78,16 @@ namespace DataAccessLayer.Repositories
 
             return await cmd.ExecuteNonQueryAsync() > 0;
         }
-        public async Task<bool> CheckConditionAndChangePlayerItem(PlayerItemDAO itemInfo, PlayerItemDAO remainItem, MySqlConnection conn, MySqlTransaction transaction)
+        public async Task<bool> CheckConditionAndChangePlayerItem(PlayerItemDAO itemInfo, PlayerItemDAO remainItem, MySqlConnection connection, MySqlTransaction transaction)
         {
             if (remainItem == null && itemInfo.quantity > 0)
-                return await AddAsync(itemInfo, conn, transaction);
+                return await AddAsync(itemInfo, connection, transaction);
 
             int quantity = remainItem.quantity + itemInfo.quantity;
             if (quantity < 0)
                 return false;
             remainItem.quantity = quantity;
-            return await UpdateAsync(remainItem, conn, transaction);
+            return await UpdateAsync(remainItem, connection, transaction);
         }
         public async Task<List<PlayerItemDAO>> GetItemsByPlayerId(string playerId, MySqlConnection connection)
         {

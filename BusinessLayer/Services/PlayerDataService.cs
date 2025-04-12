@@ -36,11 +36,11 @@ namespace BusinessLayer.Services
         }
         public async Task<bool> SignUp(PlayerDTO playerInfoDTO)
         {
-            await using MySqlConnection conn = new MySqlConnection(_dbAddress);
-            await conn.OpenAsync();
+            await using MySqlConnection connection = new MySqlConnection(_dbAddress);
+            await connection.OpenAsync();
             var playerInfo = _mapper.Map<PlayerDTO,PlayerDAO>(playerInfoDTO);
-            var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn);
-            await using MySqlTransaction transaction = await conn.BeginTransactionAsync();
+            var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, connection);
+            await using MySqlTransaction transaction = await connection.BeginTransactionAsync();
             try
             {
                 if (info.id == playerInfo.id)
@@ -48,9 +48,9 @@ namespace BusinessLayer.Services
                     Console.WriteLine($"{info.id}:Duplicate");
                     return false;
                 }
-                bool success = await _repositoryManager.PlayerInfos.AddAsync(playerInfo, conn, transaction);
+                bool success = await _repositoryManager.PlayerInfos.AddAsync(playerInfo, connection, transaction);
                 string json = await SetUpDefaultDictionary();
-                success &= await _repositoryManager.PlayerData.AddAsync(new PlayerDataDAO() { playerId = playerInfo.id, gold = 0, dictionary = json }, conn, transaction);
+                success &= await _repositoryManager.PlayerData.AddAsync(new PlayerDataDAO() { playerId = playerInfo.id, gold = 0, dictionary = json }, connection, transaction);
                 await transaction.CommitAsync();
                 Console.WriteLine(success);
                 return success;
@@ -70,12 +70,12 @@ namespace BusinessLayer.Services
         }
         public async Task<bool> LogIn(PlayerDTO playerInfoDTO)
         {
-            await using MySqlConnection conn = new MySqlConnection(_dbAddress);
-            await conn.OpenAsync();
+            await using MySqlConnection connection = new MySqlConnection(_dbAddress);
+            await connection.OpenAsync();
             var playerInfo = _mapper.Map<PlayerDTO,PlayerDAO>(playerInfoDTO);
             try
             {
-                var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, conn);
+                var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, connection);
                 return info.password == playerInfo.password;
             }
             catch (MySqlException)

@@ -6,7 +6,7 @@ namespace DataAccessLayer.Repositories
 {
     public interface IItemInfoRepository : IRepository<ItemInfo>
     {
-        public Task<List<ItemInfo>> GetItemInfoWithType(ItemType type, MySqlConnection conn);
+        public Task<List<ItemInfo>> GetItemInfoWithType(ItemType type, MySqlConnection connection);
     }
     public class ItemInfoRepository : IItemInfoRepository
     {
@@ -55,11 +55,11 @@ namespace DataAccessLayer.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<List<ItemInfo>> GetItemInfoWithType(ItemType type, MySqlConnection conn)
+        public async Task<List<ItemInfo>> GetItemInfoWithType(ItemType type, MySqlConnection connection)
         {
             MySqlCommand command = new MySqlCommand(
                 $"SELECT * FROM {ITEM_DATA_TABLE} " +
-                $"WHERE {ITEM_TYPE} = @itemType", conn);
+                $"WHERE {ITEM_TYPE} = @itemType", connection);
             command.Parameters.AddWithValue("@itemType", (int)type);
             var table = await command.ExecuteReaderAsync();
             List<ItemInfo> items = new List<ItemInfo>();

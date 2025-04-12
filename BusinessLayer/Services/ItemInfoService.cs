@@ -13,13 +13,13 @@ namespace BusinessLayer.Services
 
         public async Task<bool> AddItemInfo(ItemInfo itemInfo)
         {
-            await using MySqlConnection conn = new MySqlConnection(_dbAddress);
-            await conn.OpenAsync();
-            await using MySqlTransaction transaction = await conn.BeginTransactionAsync();
+            await using MySqlConnection connection = new MySqlConnection(_dbAddress);
+            await connection.OpenAsync();
+            await using MySqlTransaction transaction = await connection.BeginTransactionAsync();
 
             try
             {
-                bool success = await _repositoryManager.ItemInfos.AddAsync(itemInfo, conn, transaction);
+                bool success = await _repositoryManager.ItemInfos.AddAsync(itemInfo, connection, transaction);
                 await transaction.CommitAsync();
                 return success;
             }

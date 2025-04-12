@@ -7,7 +7,7 @@ namespace DataAccessLayer.Repositories
 {
     public interface IPlayerDataRepository : IRepository<PlayerDataDAO>
     {
-        public Task<bool> ChangeQuantityFromPlayer(PlayerDataDAO dataInfo, MySqlConnection conn, MySqlTransaction transaction);
+        public Task<bool> ChangeQuantityFromPlayer(PlayerDataDAO dataInfo, MySqlConnection connection, MySqlTransaction transaction);
     }
     public class PlayerDataRepository : IPlayerDataRepository
     {
@@ -63,15 +63,15 @@ namespace DataAccessLayer.Repositories
             updateItem.Parameters.AddWithValue("@dictionary", info.dictionary);
             return await updateItem.ExecuteNonQueryAsync() == 1;
         }
-        public async Task<bool> ChangeQuantityFromPlayer(PlayerDataDAO dataInfo, MySqlConnection conn, MySqlTransaction transaction)
+        public async Task<bool> ChangeQuantityFromPlayer(PlayerDataDAO dataInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
-            var info = await GetItemByPrimaryKeysAsync(dataInfo, conn);
+            var info = await GetItemByPrimaryKeysAsync(dataInfo, connection);
 
             int gold = dataInfo.gold + info.gold;
             if (gold < 0)
                 return false;
             info.gold = gold;
-            return await UpdateAsync(info, conn, transaction);
+            return await UpdateAsync(info, connection, transaction);
         }
     }
 }
