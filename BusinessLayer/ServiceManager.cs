@@ -16,7 +16,8 @@ namespace Repositories
         private AuctionService? _auctionService;
         private ItemInfoService? _itemInfoService;
         private PlayerItemService? _playerItemService;
-        private PlayerDataService? _playerLogInDataService;
+        private PlayerDataService? _playerDataService;
+        private PlayerInfoService? _playerInfoService;
         public ServiceManager(IMapper mapper, string connectionAddress)
         {
             _mapper = mapper;
@@ -27,6 +28,7 @@ namespace Repositories
         public AuctionService auctionService => _auctionService ??= new AuctionService(_repositoryManager, _mapper, _dbAddress);
         public ItemInfoService itemInfoService => _itemInfoService ??= new ItemInfoService(_repositoryManager, _mapper, _dbAddress);
         public PlayerItemService playerItemService => _playerItemService ??= new PlayerItemService(_repositoryManager, _mapper, _dbAddress);
-        public PlayerDataService playerLogInDataService => _playerLogInDataService ??= new PlayerDataService(_repositoryManager, _mapper, _dbAddress);
+        public PlayerDataService playerDataService => _playerDataService ??= new PlayerDataService(_repositoryManager, _mapper, _dbAddress);
+        public PlayerInfoService playerInfoService => _playerInfoService ??= new PlayerInfoService(_repositoryManager, _mapper, _dbAddress);
     }
 }
