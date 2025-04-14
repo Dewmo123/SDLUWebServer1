@@ -16,7 +16,7 @@ namespace DataAccessLayer.Repositories
         {
             MySqlCommand command = new MySqlCommand(
                 $"INSERT INTO {PLAYER_LOGIN_DATA_TABLE} ({PLAYER_ID},{PASSWORD})" +
-                $" VALUES (@playerId,@password)", connection, transaction);
+                $" VALUES (@playerId, SHA2(@password,256))", connection, transaction);
             command.Parameters.AddWithValue("@playerId", playerInfo.id);
             command.Parameters.AddWithValue("@password", playerInfo.password);
             var table = await command.ExecuteNonQueryAsync();
@@ -36,8 +36,9 @@ namespace DataAccessLayer.Repositories
         {
             MySqlCommand command = new MySqlCommand(
                 $"SELECT * FROM {PLAYER_LOGIN_DATA_TABLE}" +
-                $" WHERE {PLAYER_ID} = @playerId", connection);
+                $" WHERE {PLAYER_ID} = @playerId AND {PASSWORD} = SHA2(@password, 256)", connection);
             command.Parameters.AddWithValue("@playerId", playerInfo.id);
+            command.Parameters.AddWithValue("@password", playerInfo.password);
             var table = await command.ExecuteReaderAsync();
             PlayerDAO newInfo = new PlayerDAO();
             while (await table.ReadAsync())
