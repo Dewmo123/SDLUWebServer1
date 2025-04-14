@@ -68,7 +68,7 @@ namespace BusinessLayer.Services
             try
             {
                 var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, connection);
-                return info.password == info.password;
+                return !string.IsNullOrEmpty(info.password);
             }
             catch (MySqlException)
             {
