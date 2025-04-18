@@ -1,4 +1,4 @@
-# SaveInfoServer
+# SDLUWebServer1
 플레이어 정보 저장 서버입니다. 공부용이구요 아마 서노 1분기때 사용 예정임니다
 
 DB 테이블 정보 입니다
