@@ -27,12 +27,12 @@ namespace BusinessLayer.Services
         {
             await using MySqlConnection connection = new MySqlConnection(_dbAddress);
             await connection.OpenAsync();
-
             PlayerDataDAO myInfo = new PlayerDataDAO() { playerId = playerId };
             myInfo = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(myInfo, connection);
             string defaultDictionaryJson = await SetUpDefaultDictionary();
-            string playerDicionary = JsonConvert.SerializeObject(CompareDictionary(defaultDictionaryJson, myInfo.dictionary!));
-            return _mapper.Map<PlayerDataDAO,PlayerDataDTO>(myInfo);
+            string playerDictionary = JsonConvert.SerializeObject(CompareDictionary(defaultDictionaryJson, myInfo.dictionary!));
+            myInfo.dictionary = playerDictionary;
+            return _mapper.Map<PlayerDataDAO, PlayerDataDTO>(myInfo);
         }
         public async Task<bool> UpgradeDictionary(string playerId, DictionaryUpgradeDTO dto)
         {
@@ -97,5 +97,33 @@ namespace BusinessLayer.Services
             return playerDictionary;
         }
         private int DictionaryUpgradeLogic(int stack, int quantity) => quantity -= stack * 3 + 5;
+        public async Task<bool> UpgradeEquip(string playerId,EquipType equipType)
+        {
+            await using MySqlConnection connection = new MySqlConnection(_dbAddress);
+            await connection.OpenAsync();
+            PlayerDataDAO playerDataDAO = new PlayerDataDAO() { playerId = playerId };
+            playerDataDAO = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(playerDataDAO, connection);
+
+            int equipLevel = equipType == EquipType.Weapon ? playerDataDAO.weaponLevel : playerDataDAO.armorLevel;
+            int remain = EquipUpgradeLogic(playerDataDAO.gold, equipLevel);
+            if (remain < 0)
+                return false;
+            playerDataDAO.gold = remain;
+            if (equipType == EquipType.Weapon)
+                playerDataDAO.weaponLevel += 1;
+            else
+                playerDataDAO.armorLevel += 1;
+
+            await using MySqlTransaction transaction = await connection.BeginTransactionAsync();
+            bool success = true;
+            success &= await _repositoryManager.PlayerData.UpdateAsync(playerDataDAO, connection, transaction);
+
+            if (success)
+                await transaction.CommitAsync();
+            else
+                await transaction.RollbackAsync();
+            return success;
+        }
+        private int EquipUpgradeLogic(int stack, int gold) => gold -= stack * 2 + 3;
     }
 }

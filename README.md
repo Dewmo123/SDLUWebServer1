@@ -3,6 +3,7 @@
 
 DB 테이블 정보 입니다
 ````Sql
+use sdlu_db;
 create table player_login_data(
 	player_id varchar(8) primary key,
     password varchar(20)
@@ -33,6 +34,8 @@ create table player_data(
 	player_id varchar(8),
     gold int,
     dictionary text,
+    weapon_level int default 1,
+    armor_level int default 1,
     primary key (player_id),
     foreign key (player_id) references player_login_data(player_id) on delete cascade
 );

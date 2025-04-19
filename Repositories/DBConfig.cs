@@ -18,11 +18,13 @@ namespace Repositories
         public const string PLAYER_ITEM_TABLE = "player_item_data";
         public const string QUANTITY = "quantity";
         /// <summary>
-        /// 플레이어 데이터 테이블의 이름입니다. PlayerId, Gold를 속성으로 가집니다
+        /// 플레이어 데이터 테이블의 이름입니다. PlayerId, Gold, Dictionary, WeaponLevel, ArmorLevel를 속성으로 가집니다
         /// </summary>
         public const string PLAYER_DATA_TABLE = "player_data";
         public const string GOLD = "gold";
         public const string DICTIONARY = "dictionary";
+        public const string WEAPON_LEVEL = "weapon_level";
+        public const string ARMOR_LEVEL = "armor_level";
         #endregion
 
         #region ItemData

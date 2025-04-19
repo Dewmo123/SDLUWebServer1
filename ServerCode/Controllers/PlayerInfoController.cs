@@ -27,6 +27,7 @@ namespace ServerCode.Controllers
         public async Task<bool> Login([FromBody] PlayerDTO info)
         {
             _fileLogger.LogInfo($"LogIn: {info.id}");
+            Console.WriteLine(info.password);
             if (await playerInfoService.LogIn(info))
             {
                 HttpContext.Session.SetString("User", info.id);

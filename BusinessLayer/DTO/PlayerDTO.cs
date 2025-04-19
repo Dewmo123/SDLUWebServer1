@@ -25,6 +25,8 @@ namespace ServerCode.DTO
         public string? playerId { get; set; }
         public int gold { get; set; }
         public string? dictionary { get; set; }
+        public int weaponLevel { get; set; }
+        public int wrmorLevel { get; set; }
     }
     public record class BuyerDTO
     {
@@ -37,5 +39,10 @@ namespace ServerCode.DTO
     {
         public string? dictionaryKey { get; set; }
         public int level { get; set; }
+    }
+    public enum EquipType
+    {
+        Weapon = 0,
+        Armor = 1
     }
 }

@@ -46,6 +46,8 @@ namespace DataAccessLayer.Repositories
                 newItem.playerId = table.GetString(table.GetOrdinal(PLAYER_ID));
                 newItem.dictionary = table.GetString(table.GetOrdinal(DICTIONARY));
                 newItem.gold = table.GetInt32(table.GetOrdinal(GOLD));
+                newItem.weaponLevel = table.GetInt32(table.GetOrdinal(WEAPON_LEVEL));
+                newItem.armorLevel = table.GetInt32(table.GetOrdinal(ARMOR_LEVEL));
             }
             await table.CloseAsync();
 
@@ -56,11 +58,13 @@ namespace DataAccessLayer.Repositories
         {
             MySqlCommand updateItem = new MySqlCommand(
                 $"UPDATE {PLAYER_DATA_TABLE}" +
-                $" SET {GOLD} = @gold,{DICTIONARY} = @dictionary " +
+                $" SET {GOLD} = @gold,{DICTIONARY} = @dictionary,{WEAPON_LEVEL} = @weaponLevel,{ARMOR_LEVEL} = @armorLevel " +
                 $"WHERE {PLAYER_ID} = @playerId", connection, transaction);
             updateItem.Parameters.AddWithValue("@playerId", info.playerId);
             updateItem.Parameters.AddWithValue("@gold", info.gold);
             updateItem.Parameters.AddWithValue("@dictionary", info.dictionary);
+            updateItem.Parameters.AddWithValue("@weaponLevel", info.weaponLevel);
+            updateItem.Parameters.AddWithValue("@armorLevel", info.armorLevel);
             return await updateItem.ExecuteNonQueryAsync() == 1;
         }
         public async Task<bool> ChangeQuantityFromPlayer(PlayerDataDAO dataInfo, MySqlConnection connection, MySqlTransaction transaction)

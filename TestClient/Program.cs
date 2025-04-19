@@ -13,8 +13,17 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            LogIn(3,null);
+            SignUp(4);
             while (true) { }
+        }
+        static async void UpgradeWeapon()
+        {
+            string url = "http://localhost:3303/api/player-data/upgrade-equipment";
+            string json = JsonConvert.SerializeObject(EquipType.Weapon);
+            HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage msg = await client.PatchAsync(url, content);
+            string res = await msg.Content.ReadAsStringAsync();
+            Console.WriteLine(res);
         }
         static async void AddItemToPlayer()
         {
@@ -93,7 +102,7 @@ namespace TestClient
         }
         static async void LogIn(int id, Action callback)
         {
-            string url = "http://localhost:3303/api/player/log-in";
+            string url = "http://localhost:3303/api/player-info/log-in";
             PlayerDAO pc = new PlayerDAO { id = $"qqwweewq{id}", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -114,13 +123,14 @@ namespace TestClient
         }
         static async void SignUp(int id)
         {
-            string url = "http://localhost:3303/api/player/sign-up";
+            string url = "http://localhost:3303/api/player-info/sign-up";
             PlayerDAO pc = new PlayerDAO { id = $"qwweewq{id}", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage msg = await client.PostAsync(url, content);
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
+            LogIn(id, UpgradeWeapon);
         }
 
         static async void UpdateItems()

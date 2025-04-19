@@ -36,5 +36,16 @@ namespace ServerCode.Controllers
             bool success = await playerDataService.UpgradeDictionary(playerId, dto);
             return success;
         }
+        [HttpPatch("upgrade-equipment")]
+        public async Task<bool> UpgradeWeapon(EquipType equipType)
+        {
+            string? playerId = HttpContext.Session.GetString("User");
+            Console.WriteLine(playerId);
+            if (playerId == null)
+                return false;
+            Console.WriteLine($"{playerId} Request UpgradeWeapon");
+            bool success = await playerDataService.UpgradeEquip(playerId, equipType);
+            return success;
+        }
     }
 }
