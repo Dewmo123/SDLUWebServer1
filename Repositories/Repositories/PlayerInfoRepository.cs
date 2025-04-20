@@ -36,11 +36,10 @@ namespace DataAccessLayer.Repositories
         {
             MySqlCommand command = new MySqlCommand(
                 $"SELECT * FROM {PLAYER_LOGIN_DATA_TABLE}" +
-                $" WHERE {PLAYER_ID} = @playerId AND `{PASSWORD}` = sha2('@password', 256)", connection);
+                $" WHERE {PLAYER_ID} = @playerId AND `{PASSWORD}` = SHA2(@password, 256)", connection);
             command.Parameters.AddWithValue("@playerId", playerInfo.id);
             command.Parameters.AddWithValue("@password", playerInfo.password);
             var table = await command.ExecuteReaderAsync();
-            Console.WriteLine(playerInfo.password);
             PlayerDAO newInfo = new PlayerDAO();
             while (await table.ReadAsync())
             {

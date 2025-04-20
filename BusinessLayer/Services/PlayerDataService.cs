@@ -105,7 +105,7 @@ namespace BusinessLayer.Services
             playerDataDAO = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(playerDataDAO, connection);
 
             int equipLevel = equipType == EquipType.Weapon ? playerDataDAO.weaponLevel : playerDataDAO.armorLevel;
-            int remain = EquipUpgradeLogic(playerDataDAO.gold, equipLevel);
+            int remain = EquipUpgradeLogic( equipLevel, playerDataDAO.gold);
             if (remain < 0)
                 return false;
             playerDataDAO.gold = remain;

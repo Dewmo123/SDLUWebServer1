@@ -13,7 +13,7 @@ namespace TestClient
         static HttpClient client = new HttpClient();
         static void Main(string[] args)
         {
-            SignUp(4);
+            LogIn(3, UpgradeWeapon);
             while (true) { }
         }
         static async void UpgradeWeapon()
@@ -103,7 +103,7 @@ namespace TestClient
         static async void LogIn(int id, Action callback)
         {
             string url = "http://localhost:3303/api/player-info/log-in";
-            PlayerDAO pc = new PlayerDAO { id = $"qqwweewq{id}", password = "qqwweedd" };
+            PlayerDTO pc = new PlayerDTO { id = $"qwweewq{id}", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             Console.WriteLine("LogIN");
