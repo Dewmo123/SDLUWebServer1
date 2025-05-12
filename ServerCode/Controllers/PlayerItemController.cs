@@ -22,13 +22,23 @@ namespace ServerCode.Controllers
             if (userId == null)
                 return false;
             _fileLogger.LogInfo($"{userId} Try Update Items");
-            foreach (var itemUpdate in request)
-            {
-                if (await _playerItemService.UpdatePlayerItemAsync(itemUpdate, userId) == false)
-                    return false;
-            }
-
-            return true;
+            return await _playerItemService.UpdatePlayerItemsAsync(request, userId) == false;
+        }
+        [HttpPost("update-item")]
+        public async Task<bool> UpdateItem([FromBody] PlayerItemDTO inPlayerItemInfo)
+        {
+            string? userId = HttpContext.Session.GetString("User");
+            if (userId == null)
+                return false;
+            return await _playerItemService.UpdatePlayerItemAsync(inPlayerItemInfo, userId);
+        }
+        [HttpPatch("add-items")]
+        public async Task<bool> AddItems([FromBody] List<PlayerItemDTO> itemDeltas)
+        {
+            string? userId = HttpContext.Session.GetString("User");
+            if (userId == null)
+                return false;
+            return await _playerItemService.ChangePlayerItemsQuantityAsync(itemDeltas, userId);
         }
         [HttpPatch("add-item")]
         public async Task<bool> AddItem([FromBody] PlayerItemDTO itemDelta)
@@ -42,14 +52,7 @@ namespace ServerCode.Controllers
 
             return true;
         }
-        [HttpPost("update-item")]
-        public async Task<bool> UpdateItem([FromBody] PlayerItemDTO inPlayerItemInfo)
-        {
-            string? userId = HttpContext.Session.GetString("User");
-            if (userId == null)
-                return false;
-            return await _playerItemService.UpdatePlayerItemAsync(inPlayerItemInfo, userId);
-        }
+
         [HttpGet("get-my-items")]
         public async Task<ActionResult<List<PlayerItemDTO>?>> GetItemsByPlayerId()
         {

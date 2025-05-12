@@ -27,12 +27,12 @@ namespace BusinessLayer.Services
         {
             await using MySqlConnection connection = new MySqlConnection(_dbAddress);
             await connection.OpenAsync();
-            PlayerDataDAO myInfo = new PlayerDataDAO() { playerId = playerId };
+            PlayerDataVO myInfo = new PlayerDataVO() { playerId = playerId };
             myInfo = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(myInfo, connection);
             string defaultDictionaryJson = await SetUpDefaultDictionary();
             string playerDictionary = JsonConvert.SerializeObject(CompareDictionary(defaultDictionaryJson, myInfo.dictionary!));
             myInfo.dictionary = playerDictionary;
-            return _mapper.Map<PlayerDataDAO, PlayerDataDTO>(myInfo);
+            return _mapper.Map<PlayerDataVO, PlayerDataDTO>(myInfo);
         }
         public async Task<bool> UpgradeDictionary(string playerId, DictionaryUpgradeDTO dto)
         {
@@ -42,9 +42,9 @@ namespace BusinessLayer.Services
             string key = dto.dictionaryKey!;
 
             var playerData = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(
-                new PlayerDataDAO() { playerId = playerId }, connection);
+                new PlayerDataVO() { playerId = playerId }, connection);
             var playerItemData = await _repositoryManager.PlayerItems.GetItemByPrimaryKeysAsync(
-                new PlayerItemDAO() { itemName = key, playerId = playerId }, connection);
+                new PlayerItemVO() { itemName = key, playerId = playerId }, connection);
 
             if (playerData.dictionary == null)
                 playerData.dictionary = defaultDictionaryJson;
@@ -101,7 +101,7 @@ namespace BusinessLayer.Services
         {
             await using MySqlConnection connection = new MySqlConnection(_dbAddress);
             await connection.OpenAsync();
-            PlayerDataDAO playerDataDAO = new PlayerDataDAO() { playerId = playerId };
+            PlayerDataVO playerDataDAO = new PlayerDataVO() { playerId = playerId };
             playerDataDAO = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(playerDataDAO, connection);
 
             int equipLevel = equipType == EquipType.Weapon ? playerDataDAO.weaponLevel : playerDataDAO.armorLevel;

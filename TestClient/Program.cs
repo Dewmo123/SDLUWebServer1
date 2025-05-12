@@ -28,7 +28,7 @@ namespace TestClient
         static async void AddItemToPlayer()
         {
             string url = "http://localhost:3303/api/update-item";
-            PlayerItemDAO itemInfo = new PlayerItemDAO()
+            PlayerItemVO itemInfo = new PlayerItemVO()
             {
                 itemName = "sword",
                 playerId = "qwweewq2",
@@ -51,7 +51,7 @@ namespace TestClient
         static async void AddItemToAuction()
         {
             string url = "http://localhost:3303/api/auction/post";
-            var itemInfo = new AuctionItemDAO()
+            var itemInfo = new AuctionItemVO()
             {
                 itemName = "mantis",
                 playerId = "qwer",
@@ -67,7 +67,7 @@ namespace TestClient
         static async void CancelItemFromAuction()
         {
             string url = "http://localhost:3303/api/auction/cancel?playerId=qwweewq2&itemId=1&pricePerUnit=5&quantity=3";
-            var itemInfo = new AuctionItemDAO()
+            var itemInfo = new AuctionItemVO()
             {
                 itemName = "sword",
                 playerId = "qwweewq2",
@@ -86,7 +86,7 @@ namespace TestClient
             {
                 buyCount = 5,
                 buyerId = "qwweewq1",
-                itemInfo = new AuctionItemDAO()
+                itemInfo = new AuctionItemVO()
                 {
                     itemName = "sword",
                     playerId = "qwweewq2",
@@ -118,13 +118,13 @@ namespace TestClient
             HttpResponseMessage msg = await client.GetAsync(url);
             string result = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(result);
-            PlayerDataDAO? info = JsonConvert.DeserializeObject<PlayerDataDAO>(result);
+            PlayerDataVO? info = JsonConvert.DeserializeObject<PlayerDataVO>(result);
 
         }
         static async void SignUp(int id)
         {
             string url = "http://localhost:3303/api/player-info/sign-up";
-            PlayerDAO pc = new PlayerDAO { id = $"qwweewq{id}", password = "qqwweedd" };
+            PlayerVO pc = new PlayerVO { id = $"qwweewq{id}", password = "qqwweedd" };
             string json = JsonConvert.SerializeObject(pc);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage msg = await client.PostAsync(url, content);

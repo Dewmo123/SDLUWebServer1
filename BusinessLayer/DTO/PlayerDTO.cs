@@ -32,7 +32,7 @@ namespace ServerCode.DTO
     {
         public string? buyerId { get; set; }
         public int buyCount { get; set; }
-        public AuctionItemDAO itemInfo { get; set; } = null!;
+        public AuctionItemVO itemInfo { get; set; } = null!;
         public int NeededMoney => buyCount * itemInfo.pricePerUnit;
     }
     public record class DictionaryUpgradeDTO

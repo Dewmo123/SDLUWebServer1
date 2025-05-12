@@ -7,14 +7,14 @@ using Repositories;
 
 namespace DataAccessLayer.Repositories
 {
-    public interface IAuctionRepository : IRepository<AuctionItemDAO>
+    public interface IAuctionRepository : IRepository<AuctionItemVO>
     {
-        public Task<List<AuctionItemDAO>> GetItemsByItemName(string itemName, MySqlConnection connection);
-        public Task<List<AuctionItemDAO>> GetItemsByPlayerId(string playerId, MySqlConnection connection);
+        public Task<List<AuctionItemVO>> GetItemsByItemName(string itemName, MySqlConnection connection);
+        public Task<List<AuctionItemVO>> GetItemsByPlayerId(string playerId, MySqlConnection connection);
     }
     public class AuctionItemRepository : IAuctionRepository
     {
-        public async Task<bool> AddAsync(AuctionItemDAO auctionItemInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> AddAsync(AuctionItemVO auctionItemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand addNewItem = new MySqlCommand(
                 $"INSERT INTO {AUCTION_DATA_TABLE} ({PLAYER_ID},{PRICE_PER_UNIT},{QUANTITY},{ITEM_NAME})" +
@@ -26,7 +26,7 @@ namespace DataAccessLayer.Repositories
             return await addNewItem.ExecuteNonQueryAsync() > 0;
         }
 
-        public async Task<bool> DeleteWithPrimaryKeysAsync(AuctionItemDAO entity, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> DeleteWithPrimaryKeysAsync(AuctionItemVO entity, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand deleteAuctionItem = new MySqlCommand(
                 $"DELETE FROM {AUCTION_DATA_TABLE}" +
@@ -37,12 +37,12 @@ namespace DataAccessLayer.Repositories
             return await deleteAuctionItem.ExecuteNonQueryAsync() == 1;
         }
 
-        public async Task<List<AuctionItemDAO>> GetAllItemsAsync(MySqlConnection connection)
+        public Task<List<AuctionItemVO>> GetAllItemsAsync(MySqlConnection connection)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<AuctionItemDAO> GetItemByPrimaryKeysAsync(AuctionItemDAO auctionItem, MySqlConnection connection)
+        public async Task<AuctionItemVO> GetItemByPrimaryKeysAsync(AuctionItemVO auctionItem, MySqlConnection connection)
         {
             MySqlCommand getAuctionItem = new MySqlCommand(
                 $"SELECT * FROM {AUCTION_DATA_TABLE}" +
@@ -51,10 +51,10 @@ namespace DataAccessLayer.Repositories
             getAuctionItem.Parameters.AddWithValue("@pricePerUnit", auctionItem.pricePerUnit);
             getAuctionItem.Parameters.AddWithValue("@itemName", auctionItem.itemName);
             var table = await getAuctionItem.ExecuteReaderAsync();
-            AuctionItemDAO? info = null;
+            AuctionItemVO info = new();
             if (await table.ReadAsync())
             {
-                info = new AuctionItemDAO()
+                info = new AuctionItemVO()
                 {
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
                     pricePerUnit = table.GetInt32(table.GetOrdinal(PRICE_PER_UNIT)),
@@ -66,7 +66,7 @@ namespace DataAccessLayer.Repositories
             return info;
         }
 
-        public async Task<bool> UpdateAsync(AuctionItemDAO auctionItemInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> UpdateAsync(AuctionItemVO auctionItemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand addQuantity = new MySqlCommand(
                 $"UPDATE {AUCTION_DATA_TABLE} SET {QUANTITY} = @quantity " +
@@ -77,15 +77,15 @@ namespace DataAccessLayer.Repositories
             addQuantity.Parameters.AddWithValue("@pricePerUnit", auctionItemInfo.pricePerUnit);
             return await addQuantity.ExecuteNonQueryAsync() > 0;
         }
-        public async Task<List<AuctionItemDAO>> GetItemsByItemName(string itemName, MySqlConnection connection)
+        public async Task<List<AuctionItemVO>> GetItemsByItemName(string itemName, MySqlConnection connection)
         {
             MySqlCommand getItems = new MySqlCommand($"SELECT * FROM {AUCTION_DATA_TABLE} WHERE {ITEM_NAME} = @itemName",connection);
             getItems.Parameters.AddWithValue("@itemName", itemName);
             var table = await getItems.ExecuteReaderAsync();
-            List<AuctionItemDAO> items = new List<AuctionItemDAO>();
+            List<AuctionItemVO> items = new List<AuctionItemVO>();
             while (await table.ReadAsync())
             {
-                items.Add(new AuctionItemDAO()
+                items.Add(new AuctionItemVO()
                 {
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
                     quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
@@ -97,15 +97,15 @@ namespace DataAccessLayer.Repositories
             return items;
         }
 
-        public async Task<List<AuctionItemDAO>> GetItemsByPlayerId(string playerId, MySqlConnection connection)
+        public async Task<List<AuctionItemVO>> GetItemsByPlayerId(string playerId, MySqlConnection connection)
         {
             MySqlCommand getItems = new MySqlCommand($"SELECT * FROM {AUCTION_DATA_TABLE} WHERE {PLAYER_ID} = @playerId", connection);
             getItems.Parameters.AddWithValue("@playerId", playerId);
             var table = await getItems.ExecuteReaderAsync();
-            List<AuctionItemDAO> items = new List<AuctionItemDAO>();
+            List<AuctionItemVO> items = new List<AuctionItemVO>();
             while (await table.ReadAsync())
             {
-                items.Add(new AuctionItemDAO()
+                items.Add(new AuctionItemVO()
                 {
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
                     quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),

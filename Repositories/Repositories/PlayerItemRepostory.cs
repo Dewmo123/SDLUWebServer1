@@ -5,15 +5,17 @@ using static Repositories.DBConfig;
 
 namespace DataAccessLayer.Repositories
 {
-    public interface IPlayerItemRepository : IRepository<PlayerItemDAO>
+    public interface IPlayerItemRepository : IRepository<PlayerItemVO>
     {
-        public Task<bool> CheckConditionAndChangePlayerItem(PlayerItemDAO itemInfo, PlayerItemDAO remainItem, MySqlConnection connection, MySqlTransaction transaction);
-        public Task<List<PlayerItemDAO>> GetItemsByPlayerId(string playerId, MySqlConnection connection);
+        public Task<bool> CheckConditionAndChangePlayerItem(PlayerItemVO itemInfo, PlayerItemVO remainItem, MySqlConnection connection, MySqlTransaction transaction);
+        public Task<List<PlayerItemVO>> GetItemsByPlayerId(string playerId, MySqlConnection connection);
+        public Task<PlayerItemVO> GetItemWithTransactionAsync(PlayerItemVO entity, MySqlConnection connection, MySqlTransaction transaction);
+
     }
     public class PlayerItemRepostory : IPlayerItemRepository
     {
 
-        public async Task<bool> AddAsync(PlayerItemDAO itemInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> AddAsync(PlayerItemVO itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             if (itemInfo.quantity <= 0) return false;
 
@@ -26,7 +28,7 @@ namespace DataAccessLayer.Repositories
 
             return await cmd.ExecuteNonQueryAsync() > 0;
         }
-        public async Task<bool> DeleteWithPrimaryKeysAsync(PlayerItemDAO itemInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> DeleteWithPrimaryKeysAsync(PlayerItemVO itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             var cmd = new MySqlCommand(
                 $"DELETE FROM {PLAYER_ITEM_TABLE} " +
@@ -37,12 +39,12 @@ namespace DataAccessLayer.Repositories
             return await cmd.ExecuteNonQueryAsync() > 0;
         }
 
-        public Task<List<PlayerItemDAO>> GetAllItemsAsync(MySqlConnection connection)
+        public Task<List<PlayerItemVO>> GetAllItemsAsync(MySqlConnection connection)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<PlayerItemDAO> GetItemByPrimaryKeysAsync(PlayerItemDAO itemInfo, MySqlConnection connection)
+        public async Task<PlayerItemVO?> GetItemByPrimaryKeysAsync(PlayerItemVO itemInfo, MySqlConnection connection)
         {
             var cmd = new MySqlCommand(
                 $"SELECT * FROM {PLAYER_ITEM_TABLE}" +
@@ -51,10 +53,10 @@ namespace DataAccessLayer.Repositories
             cmd.Parameters.AddWithValue("@itemName", itemInfo.itemName);
 
             var table = await cmd.ExecuteReaderAsync();
-            PlayerItemDAO? info = null;
+            PlayerItemVO? info = null;
             if (await table.ReadAsync())
             {
-                info = new PlayerItemDAO
+                info = new PlayerItemVO
                 {
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
                     quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
@@ -65,7 +67,7 @@ namespace DataAccessLayer.Repositories
             return info;
         }
 
-        public async Task<bool> UpdateAsync(PlayerItemDAO itemInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> UpdateAsync(PlayerItemVO itemInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             var cmd = new MySqlCommand(
                 $"UPDATE {PLAYER_ITEM_TABLE} " +
@@ -78,7 +80,7 @@ namespace DataAccessLayer.Repositories
 
             return await cmd.ExecuteNonQueryAsync() > 0;
         }
-        public async Task<bool> CheckConditionAndChangePlayerItem(PlayerItemDAO itemInfo, PlayerItemDAO remainItem, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> CheckConditionAndChangePlayerItem(PlayerItemVO itemInfo, PlayerItemVO remainItem, MySqlConnection connection, MySqlTransaction transaction)
         {
             if (remainItem == null && itemInfo.quantity > 0)
                 return await AddAsync(itemInfo, connection, transaction);
@@ -89,17 +91,17 @@ namespace DataAccessLayer.Repositories
             remainItem.quantity = quantity;
             return await UpdateAsync(remainItem, connection, transaction);
         }
-        public async Task<List<PlayerItemDAO>> GetItemsByPlayerId(string playerId, MySqlConnection connection)
+        public async Task<List<PlayerItemVO>> GetItemsByPlayerId(string playerId, MySqlConnection connection)
         {
             MySqlCommand selectItems = new MySqlCommand(
                 $"SELECT * FROM {PLAYER_ITEM_TABLE}" +
                 $" WHERE {PLAYER_ID} = @playerId", connection);
             selectItems.Parameters.AddWithValue("@playerId", playerId);
             var table = await selectItems.ExecuteReaderAsync();
-            List<PlayerItemDAO> items = new List<PlayerItemDAO>();
+            List<PlayerItemVO> items = new List<PlayerItemVO>();
             while (await table.ReadAsync())
             {
-                items.Add(new PlayerItemDAO()
+                items.Add(new PlayerItemVO()
                 {
                     playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
                     quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
@@ -108,6 +110,29 @@ namespace DataAccessLayer.Repositories
             }
             await table.CloseAsync();
             return items;
+        }
+
+        public async Task<PlayerItemVO> GetItemWithTransactionAsync(PlayerItemVO entity, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            MySqlCommand getItem = new MySqlCommand(
+                $"SELECT * FROM {PLAYER_ITEM_TABLE} " +
+                $"WHERE {PLAYER_ID} = @playerId AND {ITEM_NAME} = @itemName", connection, transaction);
+            getItem.Parameters.AddWithValue("@playerId", entity.playerId);
+            getItem.Parameters.AddWithValue("@itemName", entity.itemName);
+
+            var table = await getItem.ExecuteReaderAsync();
+            PlayerItemVO? info = null;
+            if (await table.ReadAsync())
+            {
+                info = new PlayerItemVO
+                {
+                    playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
+                    quantity = table.GetInt32(table.GetOrdinal(QUANTITY)),
+                    itemName = table.GetString(table.GetOrdinal(ITEM_NAME))
+                };
+            }
+            await table.CloseAsync();
+            return info;
         }
     }
 }

@@ -30,7 +30,7 @@ namespace BusinessLayer.Services
         {
             await using MySqlConnection connection = new MySqlConnection(_dbAddress);
             await connection.OpenAsync();
-            var playerInfo = _mapper.Map<PlayerDTO, PlayerDAO>(playerInfoDTO);
+            var playerInfo = _mapper.Map<PlayerDTO, PlayerVO>(playerInfoDTO);
             var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, connection);
             await using MySqlTransaction transaction = await connection.BeginTransactionAsync();
             try
@@ -42,7 +42,7 @@ namespace BusinessLayer.Services
                 }
                 bool success = await _repositoryManager.PlayerInfos.AddAsync(playerInfo, connection, transaction);
                 string json = await SetUpDefaultDictionary();
-                success &= await _repositoryManager.PlayerData.AddAsync(new PlayerDataDAO() { playerId = playerInfo.id, gold = 0, dictionary = json }, connection, transaction);
+                success &= await _repositoryManager.PlayerData.AddAsync(new PlayerDataVO() { playerId = playerInfo.id, gold = 0, dictionary = json }, connection, transaction);
                 await transaction.CommitAsync();
                 Console.WriteLine(success);
                 return success;
@@ -64,7 +64,7 @@ namespace BusinessLayer.Services
         {
             await using MySqlConnection connection = new MySqlConnection(_dbAddress);
             await connection.OpenAsync();
-            var playerInfo = _mapper.Map<PlayerDTO, PlayerDAO>(playerInfoDTO);
+            var playerInfo = _mapper.Map<PlayerDTO, PlayerVO>(playerInfoDTO);
             try
             {
                 var info = await _repositoryManager.PlayerInfos.GetItemByPrimaryKeysAsync(playerInfo, connection);

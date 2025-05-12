@@ -27,10 +27,10 @@ string connection = builder.Configuration.GetConnectionString("DefaultConnection
 #region SetMapper
 (Type, Type)[] types =
 {
-    (typeof(PlayerDTO),typeof(PlayerDAO)),
-    (typeof(PlayerDataDTO),typeof(PlayerDataDAO)),
-    (typeof(PlayerItemDTO),typeof(PlayerItemDAO)),
-    (typeof(AuctionItemDTO),typeof(AuctionItemDAO)),
+    (typeof(PlayerDTO),typeof(PlayerVO)),
+    (typeof(PlayerDataDTO),typeof(PlayerDataVO)),
+    (typeof(PlayerItemDTO),typeof(PlayerItemVO)),
+    (typeof(AuctionItemDTO),typeof(AuctionItemVO)),
 };
 var config = new MapperConfiguration(expression =>
 {

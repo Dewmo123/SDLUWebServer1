@@ -5,13 +5,13 @@ using static Repositories.DBConfig;
 
 namespace DataAccessLayer.Repositories
 {
-    public interface IPlayerDataRepository : IRepository<PlayerDataDAO>
+    public interface IPlayerDataRepository : IRepository<PlayerDataVO>
     {
-        public Task<bool> ChangeQuantityFromPlayer(PlayerDataDAO dataInfo, MySqlConnection connection, MySqlTransaction transaction);
+        public Task<bool> ChangeQuantityFromPlayer(PlayerDataVO dataInfo, MySqlConnection connection, MySqlTransaction transaction);
     }
     public class PlayerDataRepository : IPlayerDataRepository
     {
-        public async Task<bool> AddAsync(PlayerDataDAO inPlayerGoldInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> AddAsync(PlayerDataVO inPlayerGoldInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand addGoldInfo = new MySqlCommand(
                 $"INSERT {PLAYER_DATA_TABLE} ({PLAYER_ID},{GOLD},{DICTIONARY})" +
@@ -25,22 +25,22 @@ namespace DataAccessLayer.Repositories
             return await addGoldInfo.ExecuteNonQueryAsync() == 1;
         }
 
-        public Task<bool> DeleteWithPrimaryKeysAsync(PlayerDataDAO entity, MySqlConnection connection, MySqlTransaction transaction)
+        public Task<bool> DeleteWithPrimaryKeysAsync(PlayerDataVO entity, MySqlConnection connection, MySqlTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<PlayerDataDAO>> GetAllItemsAsync(MySqlConnection connection)
+        public Task<List<PlayerDataVO>> GetAllItemsAsync(MySqlConnection connection)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<PlayerDataDAO> GetItemByPrimaryKeysAsync(PlayerDataDAO inPlayerGoldInfo, MySqlConnection connection)
+        public async Task<PlayerDataVO> GetItemByPrimaryKeysAsync(PlayerDataVO inPlayerGoldInfo, MySqlConnection connection)
         {
             MySqlCommand getItem = new MySqlCommand($"SELECT * FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = @playerId", connection);
             getItem.Parameters.AddWithValue("@playerId", inPlayerGoldInfo.playerId);
             var table = await getItem.ExecuteReaderAsync();
-            PlayerDataDAO newItem = new();
+            PlayerDataVO newItem = new();
             if (await table.ReadAsync())
             {
                 newItem.playerId = table.GetString(table.GetOrdinal(PLAYER_ID));
@@ -54,7 +54,7 @@ namespace DataAccessLayer.Repositories
             return newItem;
         }
 
-        public async Task<bool> UpdateAsync(PlayerDataDAO info, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> UpdateAsync(PlayerDataVO info, MySqlConnection connection, MySqlTransaction transaction)
         {
             MySqlCommand updateItem = new MySqlCommand(
                 $"UPDATE {PLAYER_DATA_TABLE}" +
@@ -67,7 +67,7 @@ namespace DataAccessLayer.Repositories
             updateItem.Parameters.AddWithValue("@armorLevel", info.armorLevel);
             return await updateItem.ExecuteNonQueryAsync() == 1;
         }
-        public async Task<bool> ChangeQuantityFromPlayer(PlayerDataDAO dataInfo, MySqlConnection connection, MySqlTransaction transaction)
+        public async Task<bool> ChangeQuantityFromPlayer(PlayerDataVO dataInfo, MySqlConnection connection, MySqlTransaction transaction)
         {
             var info = await GetItemByPrimaryKeysAsync(dataInfo, connection);
 
