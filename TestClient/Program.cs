@@ -19,7 +19,8 @@ namespace TestClient
         static async void UpgradeWeapon()
         {
             string url = "http://localhost:3303/api/player-data/upgrade-equipment";
-            string json = JsonConvert.SerializeObject(EquipType.Weapon);
+            string json = JsonConvert.SerializeObject(EquipType.Armor);
+            Console.WriteLine(json);
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage msg = await client.PatchAsync(url, content);
             string res = await msg.Content.ReadAsStringAsync();

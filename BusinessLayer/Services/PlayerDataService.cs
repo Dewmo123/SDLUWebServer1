@@ -106,6 +106,7 @@ namespace BusinessLayer.Services
             await connection.OpenAsync();
             var playerDataVO = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(
                 new PlayerDataVO() { playerId = playerId }, connection);
+            Console.WriteLine($"Type: {equipType}");
             if (playerDataVO == null)
                 return false;
             int equipLevel = equipType == EquipType.Weapon ? playerDataVO.weaponLevel : playerDataVO.armorLevel;

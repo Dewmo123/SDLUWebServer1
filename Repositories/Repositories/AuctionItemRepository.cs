@@ -42,7 +42,7 @@ namespace DataAccessLayer.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<AuctionItemVO> GetItemByPrimaryKeysAsync(AuctionItemVO auctionItem, MySqlConnection connection)
+        public async Task<AuctionItemVO?> GetItemByPrimaryKeysAsync(AuctionItemVO auctionItem, MySqlConnection connection)
         {
             MySqlCommand getAuctionItem = new MySqlCommand(
                 $"SELECT * FROM {AUCTION_DATA_TABLE}" +
@@ -51,7 +51,7 @@ namespace DataAccessLayer.Repositories
             getAuctionItem.Parameters.AddWithValue("@pricePerUnit", auctionItem.pricePerUnit);
             getAuctionItem.Parameters.AddWithValue("@itemName", auctionItem.itemName);
             var table = await getAuctionItem.ExecuteReaderAsync();
-            AuctionItemVO info = new();
+            AuctionItemVO? info = null;
             if (await table.ReadAsync())
             {
                 info = new AuctionItemVO()
