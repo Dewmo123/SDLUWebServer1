@@ -35,19 +35,22 @@ namespace DataAccessLayer.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<PlayerDataVO> GetItemByPrimaryKeysAsync(PlayerDataVO inPlayerGoldInfo, MySqlConnection connection)
+        public async Task<PlayerDataVO?> GetItemByPrimaryKeysAsync(PlayerDataVO inPlayerGoldInfo, MySqlConnection connection)
         {
             MySqlCommand getItem = new MySqlCommand($"SELECT * FROM {PLAYER_DATA_TABLE} WHERE {PLAYER_ID} = @playerId", connection);
             getItem.Parameters.AddWithValue("@playerId", inPlayerGoldInfo.playerId);
             var table = await getItem.ExecuteReaderAsync();
-            PlayerDataVO newItem = new();
+            PlayerDataVO? newItem = null;
             if (await table.ReadAsync())
             {
-                newItem.playerId = table.GetString(table.GetOrdinal(PLAYER_ID));
-                newItem.dictionary = table.GetString(table.GetOrdinal(DICTIONARY));
-                newItem.gold = table.GetInt32(table.GetOrdinal(GOLD));
-                newItem.weaponLevel = table.GetInt32(table.GetOrdinal(WEAPON_LEVEL));
-                newItem.armorLevel = table.GetInt32(table.GetOrdinal(ARMOR_LEVEL));
+                newItem = new PlayerDataVO()
+                {
+                    playerId = table.GetString(table.GetOrdinal(PLAYER_ID)),
+                    dictionary = table.GetString(table.GetOrdinal(DICTIONARY)),
+                    gold = table.GetInt32(table.GetOrdinal(GOLD)),
+                    weaponLevel = table.GetInt32(table.GetOrdinal(WEAPON_LEVEL)),
+                    armorLevel = table.GetInt32(table.GetOrdinal(ARMOR_LEVEL))
+                };
             }
             await table.CloseAsync();
 
