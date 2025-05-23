@@ -36,15 +36,21 @@ namespace BusinessLayer.Services
             try
             {
                 bool success = await _repositoryManager.PlayerItems.UpdateAsync(playerItemInfo, connection, transaction);
-
-                if (remainItemInfo == null && auctionItemInfo.quantity > 0)
+                if (remainItemInfo == null)
                 {
-                    success &= await _repositoryManager.AuctionItems.AddAsync(auctionItemInfo, connection, transaction);
-                    if (success) await transaction.CommitAsync();
-                    else await transaction.RollbackAsync();
-                    return success;
+                    if (auctionItemInfo.quantity > 0)
+                    {
+                        success &= await _repositoryManager.AuctionItems.AddAsync(auctionItemInfo, connection, transaction);
+                        if (success) await transaction.CommitAsync();
+                        else await transaction.RollbackAsync();
+                        return success;
+                    }
+                    else
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
                 }
-
                 int quantity = remainItemInfo.quantity + auctionItemInfo.quantity;
                 if (quantity < 0)
                     return false;

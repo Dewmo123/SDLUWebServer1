@@ -111,6 +111,7 @@ namespace BusinessLayer.Services
             var playerItemInfos = await _repositoryManager.PlayerItems.GetItemsByPlayerId(playerId, connection);
             List<PlayerItemDTO> items = new List<PlayerItemDTO>();
             playerItemInfos.ForEach(item => items.Add(_mapper.Map<PlayerItemVO, PlayerItemDTO>(item)));
+            Console.WriteLine(items.Count);
             return items;
         }
 

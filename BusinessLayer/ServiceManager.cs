@@ -22,7 +22,7 @@ namespace Repositories
         {
             _mapper = mapper;
             _dbAddress = connectionAddress;
-            _repositoryManager = new RepositoryManager(connectionAddress);
+            _repositoryManager = new RepositoryManager();
         }
 
         public AuctionService auctionService => _auctionService ??= new AuctionService(_repositoryManager, _mapper, _dbAddress);

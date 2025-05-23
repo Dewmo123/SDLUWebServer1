@@ -22,7 +22,7 @@ namespace BusinessLayer.Services
             await using MySqlConnection connection = new MySqlConnection(_dbAddress);
             await connection.OpenAsync();
             var items = await _repositoryManager.ItemInfos.GetItemInfoWithType(ItemType.dictionary, connection);
-            string json = JsonConvert.SerializeObject(items.ToDictionary(key => key.itemName, val => 0), Formatting.Indented);
+            string json = JsonConvert.SerializeObject(items.ToDictionary(key => key.itemName, val => 1), Formatting.Indented);
             await connection.CloseAsync();
             return json;
         }
