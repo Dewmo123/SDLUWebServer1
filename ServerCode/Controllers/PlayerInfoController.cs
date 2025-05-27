@@ -37,5 +37,10 @@ namespace ServerCode.Controllers
             _fileLogger.LogWarning($"LogIn {info.id} : Failed");
             return false;
         }
+        [HttpGet("log-ouot")]
+        public void LogOut()
+        {
+            HttpContext.Session.SetString("User", string.Empty);
+        }
     }
 }

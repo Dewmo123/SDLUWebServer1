@@ -1,6 +1,7 @@
 ﻿using BusinessLayer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Repositories;
+using ServerCode.DAO;
 using ServerCode.DTO;
 
 namespace ServerCode.Controllers
@@ -19,50 +20,52 @@ namespace ServerCode.Controllers
         [HttpPost("post")]
         public async Task<bool> PostItemToAuction([FromBody]AuctionItemDTO auctionItemInfo)
         {
-            string? user = HttpContext.Session.GetString("User");
-            if (user == null)
+            string? playerId = HttpContext.Session.GetString("User");
+            if (string.IsNullOrEmpty(playerId))
                 return false;
-            auctionItemInfo.playerId = user;
-            _fileLogger.LogInfo($"{user} PostItemToAuction: {auctionItemInfo.itemName}");
+            auctionItemInfo.playerId = playerId;
+            _fileLogger.LogInfo($"{playerId} PostItemToAuction: {auctionItemInfo.itemName}");
             return await auctionService.AddItemToAuction(auctionItemInfo);
         }
         [HttpPatch("purchase")]
         public async Task<bool> PurchaseItem([FromBody]BuyerDTO buyerInfo)
         {
-            string? user = HttpContext.Session.GetString("User");
-            if (buyerInfo.buyerId != user || user == buyerInfo.itemInfo.playerId)
+            string? playerId = HttpContext.Session.GetString("User");
+            if (string.IsNullOrEmpty(playerId))
+                return false;
+            if (buyerInfo.buyerId != playerId || playerId == buyerInfo.itemInfo.playerId)
             {
                 Console.WriteLine("not same");
                 return false;
             }
-            _fileLogger.LogInfo($"{user} Try to purchase {buyerInfo.itemInfo.itemName}");
+            _fileLogger.LogInfo($"{playerId} Try to purchase {buyerInfo.itemInfo.itemName}");
             return await auctionService.PurchaseItemInAuction(buyerInfo);
         }
         [HttpDelete("cancel")]
         public async Task<bool> CancelItem(string itemName, int pricePerUnit)
         {
-            string? userId = HttpContext.Session.GetString("User");
-            Console.WriteLine($"{userId} Cancel Auction Item: {itemName}");
-            if (userId == null)
+            string? playerId = HttpContext.Session.GetString("User");
+            Console.WriteLine($"{playerId} Cancel Auction Item: {itemName}");
+            if (string.IsNullOrEmpty(playerId))
                 return false;
-            return await auctionService.CancelAuctionItem(userId,itemName,pricePerUnit);
+            return await auctionService.CancelAuctionItem(playerId,itemName,pricePerUnit);
         }
         [HttpGet("get-items")]
         public async Task<ActionResult<List<AuctionItemDTO>>?> GetItemsByItemName(string itemName)
         {
             string? playerId = HttpContext.Session.GetString("User");
             Console.WriteLine($"playerId Access: {itemName}");
-            if (playerId == null)
+            if (string.IsNullOrEmpty(playerId))
                 return NotFound();
             return await auctionService.GetAuctionItemByItemName(itemName);
         }
         [HttpGet("get-my-items")]
         public async Task<ActionResult<List<AuctionItemDTO>>?> GetItemsByPlayerName()
         {
-            string? userId = HttpContext.Session.GetString("User");
-            if (userId == null)
+            string? playerId = HttpContext.Session.GetString("User");
+            if (string.IsNullOrEmpty(playerId))
                 return NotFound();
-            return await auctionService.GetAuctionnItemByPlayerId(userId);
+            return await auctionService.GetAuctionnItemByPlayerId(playerId);
         }
     }
 }

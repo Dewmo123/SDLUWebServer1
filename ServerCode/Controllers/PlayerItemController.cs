@@ -1,6 +1,7 @@
 ﻿using BusinessLayer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Repositories;
+using ServerCode.DAO;
 using ServerCode.DTO;
 
 namespace ServerCode.Controllers
@@ -18,36 +19,36 @@ namespace ServerCode.Controllers
         [HttpPatch("update-items")]
         public async Task<bool> UpdateItems([FromBody] List<PlayerItemDTO> request) //얘는 아예 덮어씌우는거라 나중에 던전에서 얻을걸 더해주는 걸로 해야할듯
         {
-            string? userId = HttpContext.Session.GetString("User");
-            if (userId == null)
+            string? playerId = HttpContext.Session.GetString("User");
+            if (string.IsNullOrEmpty(playerId))
                 return false;
-            _fileLogger.LogInfo($"{userId} Try Update Items");
-            return await _playerItemService.UpdatePlayerItemsAsync(request, userId) == false;
+            _fileLogger.LogInfo($"{playerId} Try Update Items");
+            return await _playerItemService.UpdatePlayerItemsAsync(request, playerId) == false;
         }
         [HttpPost("update-item")]
         public async Task<bool> UpdateItem([FromBody] PlayerItemDTO inPlayerItemInfo)
         {
-            string? userId = HttpContext.Session.GetString("User");
-            if (userId == null)
+            string? playerId = HttpContext.Session.GetString("User");
+            if (string.IsNullOrEmpty(playerId))
                 return false;
-            return await _playerItemService.UpdatePlayerItemAsync(inPlayerItemInfo, userId);
+            return await _playerItemService.UpdatePlayerItemAsync(inPlayerItemInfo, playerId);
         }
         [HttpPatch("add-items")]
         public async Task<bool> AddItems([FromBody] List<PlayerItemDTO> itemDeltas)
         {
-            string? userId = HttpContext.Session.GetString("User");
-            if (userId == null)
+            string? playerId = HttpContext.Session.GetString("User");
+            if (string.IsNullOrEmpty(playerId))
                 return false;
-            return await _playerItemService.ChangePlayerItemsQuantityAsync(itemDeltas, userId);
+            return await _playerItemService.ChangePlayerItemsQuantityAsync(itemDeltas, playerId);
         }
         [HttpPatch("add-item")]
         public async Task<bool> AddItem([FromBody] PlayerItemDTO itemDelta)
         {
-            string? userId = HttpContext.Session.GetString("User");
-            if (userId == null)
+            string? playerId = HttpContext.Session.GetString("User");
+            if (string.IsNullOrEmpty(playerId))
                 return false;
-            _fileLogger.LogInfo($"{userId} Try Update Items");
-            if (await _playerItemService.ChangePlayerItemQuantityAsync(itemDelta, userId) == false)
+            _fileLogger.LogInfo($"{playerId} Try Update Items");
+            if (await _playerItemService.ChangePlayerItemQuantityAsync(itemDelta, playerId) == false)
                 return false;
 
             return true;
@@ -56,12 +57,12 @@ namespace ServerCode.Controllers
         [HttpGet("get-my-items")]
         public async Task<ActionResult<List<PlayerItemDTO>?>> GetItemsByPlayerId()
         {
-            string? userId = HttpContext.Session.GetString("User");
+            string? playerId = HttpContext.Session.GetString("User");
             Console.WriteLine($"Get MyItems Request");
-            if (userId == null)
+            if (string.IsNullOrEmpty(playerId))
                 return NotFound();
-            Console.WriteLine($"Get Player Items: {userId}");
-            return await _playerItemService.GetItemsByPlayerId(userId);
+            Console.WriteLine($"Get Player Items: {playerId}");
+            return await _playerItemService.GetItemsByPlayerId(playerId);
         }
     }
 }

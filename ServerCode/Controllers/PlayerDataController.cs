@@ -3,6 +3,7 @@ using Repositories;
 using BusinessLayer.Services;
 using Newtonsoft.Json;
 using ServerCode.DTO;
+using ServerCode.DAO;
 
 namespace ServerCode.Controllers
 {
@@ -22,24 +23,24 @@ namespace ServerCode.Controllers
         {
             string? playerId = HttpContext.Session.GetString("User");
 
-            if (playerId == null)
+            if (string.IsNullOrEmpty(playerId))
                 return NotFound();
             return await playerDataService.GetPlayerData(playerId);
         }
         [HttpPatch("stage-end")]
         public async Task<bool> StageEnd(StageEndDTO stageEndDTO)
         {
-            string? playerid = HttpContext.Session.GetString("User");
-            if (playerid == null)
+            string? playerId = HttpContext.Session.GetString("User");
+            if (string.IsNullOrEmpty(playerId))
                 return false;
             Console.WriteLine(stageEndDTO.stageCount);
-            return await playerDataService.StageEnd(stageEndDTO.stageCount, playerid);
+            return await playerDataService.StageEnd(stageEndDTO.stageCount, playerId);
         }
         [HttpPatch("upgrade-dictionary")]
         public async Task<bool> UpgradeDictionary(DictionaryUpgradeDTO dto)
         {
             string? playerId = HttpContext.Session.GetString("User");
-            if (playerId == null)
+            if (string.IsNullOrEmpty(playerId))
                 return false;
             Console.WriteLine($"{playerId} Request Upgrade Item: {dto.dictionaryKey}");
             bool success = await playerDataService.UpgradeDictionary(playerId, dto);
@@ -50,7 +51,7 @@ namespace ServerCode.Controllers
         {
             string? playerId = HttpContext.Session.GetString("User");
             Console.WriteLine(playerId);
-            if (playerId == null)
+            if (string.IsNullOrEmpty(playerId))
                 return false;
             Console.WriteLine($"{playerId} Request UpgradeWeapon");
             Console.WriteLine($"asd:{equipType}");
