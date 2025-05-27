@@ -57,9 +57,7 @@ namespace BusinessLayer.Services
             if (playerDictionary == null)
                 return false;
             stack = playerDictionary[key];
-
-            if (stack != dto.level)
-                return false;
+            Console.WriteLine(stack);
             int afterLogic = DictionaryUpgradeLogic(stack, playerItemData.quantity);
             if (afterLogic < 0)
                 return false;
@@ -99,7 +97,6 @@ namespace BusinessLayer.Services
                 }
             return playerDictionary;
         }
-        private int DictionaryUpgradeLogic(int stack, int quantity) => quantity -= stack * 2;
         public async Task<bool> UpgradeEquip(string playerId, EquipType equipType)
         {
             await using MySqlConnection connection = new MySqlConnection(_dbAddress);
@@ -129,6 +126,26 @@ namespace BusinessLayer.Services
                 await transaction.RollbackAsync();
             return success;
         }
+        public async Task<bool> StageEnd(int stageCount,string playerId)
+        {
+            using MySqlConnection connection = new MySqlConnection(_dbAddress);
+            await connection.OpenAsync();
+
+            var playerDataVO = await _repositoryManager.PlayerData.GetItemByPrimaryKeysAsync(new (){ playerId = playerId }, connection);
+            if (playerDataVO == null)
+                return false;
+            playerDataVO.gold += StageGoldLogic(stageCount);
+            using MySqlTransaction transaction = connection.BeginTransaction();
+            bool success = await _repositoryManager.PlayerData.UpdateAsync(playerDataVO, connection, transaction);
+            Console.WriteLine($"asd:{StageGoldLogic(stageCount)}");
+            if (success)
+                await transaction.CommitAsync();
+            else
+                await transaction.RollbackAsync();
+            return success;
+        }
+        private int DictionaryUpgradeLogic(int stack, int quantity) => quantity -= stack * 2;
         private int EquipUpgradeLogic(int stack, int gold) => gold -= (int)MathF.Round(100 * -(1 - MathF.Exp(0.05f * stack)));
+        private int StageGoldLogic(int stageCount) => stageCount * stageCount * 100;
     }
 }

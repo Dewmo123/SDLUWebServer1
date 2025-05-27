@@ -42,5 +42,5 @@
         public string? dictionary { get; set; }
         public int weaponLevel { get; set; }
         public int armorLevel { get; set; }
-}
+    }
 }

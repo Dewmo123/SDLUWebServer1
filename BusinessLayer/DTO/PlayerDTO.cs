@@ -38,7 +38,10 @@ namespace ServerCode.DTO
     public record class DictionaryUpgradeDTO
     {
         public string? dictionaryKey { get; set; }
-        public int level { get; set; }
+    }
+    public record class StageEndDTO
+    {
+        public int stageCount { get; set; }
     }
     public enum EquipType
     {

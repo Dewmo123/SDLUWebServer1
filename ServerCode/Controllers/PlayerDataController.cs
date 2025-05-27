@@ -26,13 +26,22 @@ namespace ServerCode.Controllers
                 return NotFound();
             return await playerDataService.GetPlayerData(playerId);
         }
+        [HttpPatch("stage-end")]
+        public async Task<bool> StageEnd(StageEndDTO stageEndDTO)
+        {
+            string? playerid = HttpContext.Session.GetString("User");
+            if (playerid == null)
+                return false;
+            Console.WriteLine(stageEndDTO.stageCount);
+            return await playerDataService.StageEnd(stageEndDTO.stageCount, playerid);
+        }
         [HttpPatch("upgrade-dictionary")]
         public async Task<bool> UpgradeDictionary(DictionaryUpgradeDTO dto)
         {
             string? playerId = HttpContext.Session.GetString("User");
             if (playerId == null)
                 return false;
-            Console.WriteLine($"{playerId} Request Upgrade Item: {dto.dictionaryKey}, {dto.level}");
+            Console.WriteLine($"{playerId} Request Upgrade Item: {dto.dictionaryKey}");
             bool success = await playerDataService.UpgradeDictionary(playerId, dto);
             return success;
         }
