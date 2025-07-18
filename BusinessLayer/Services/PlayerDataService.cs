@@ -141,7 +141,7 @@ namespace BusinessLayer.Services
             if (success)
                 await transaction.CommitAsync();
             else
-                await transaction.RollbackAsync();
+                await transaction.RollbackAsync(); 
             return success;
         }
         private int DictionaryUpgradeLogic(int stack, int quantity) => quantity -= stack * 2;

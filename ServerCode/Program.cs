@@ -8,13 +8,11 @@ using ServerCode.DTO;
 //using ServerCode.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
-// 🔹 세션을 위한 메모리 캐시 추가
+
 builder.Services.AddDistributedMemoryCache();
 
-// 🔹 데이터 보호 서비스 추가 (세션 오류 방지)
 builder.Services.AddDataProtection();
 
-// 🔹 세션 서비스 추가
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30); // 세션 유지 시간
